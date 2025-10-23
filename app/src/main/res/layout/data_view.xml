@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <com.aboni.n2kRouter.DialView
+        android:id="@+id/dialView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/calibCosViewRO"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtBigAngleView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="center"
+        android:textSize="36sp"
+        app:layout_constraintBottom_toBottomOf="@+id/dialView"
+        app:layout_constraintEnd_toEndOf="@+id/dialView"
+        app:layout_constraintStart_toStartOf="@+id/dialView"
+        app:layout_constraintTop_toTopOf="@+id/dialView"
+        tools:text="-000.0 P\n00.0 Kn" />
+
+    <com.aboni.n2kRouter.CalibView
+        android:id="@+id/calibSinViewRO"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/lblCalibSin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sin_label"
+        android:textColor="?android:attr/textColorTertiaryInverse"
+        app:layout_constraintBottom_toBottomOf="@+id/calibSinViewRO"
+        app:layout_constraintEnd_toEndOf="@+id/calibSinViewRO"
+        app:layout_constraintStart_toStartOf="@+id/calibSinViewRO"
+        app:layout_constraintTop_toTopOf="@+id/calibSinViewRO" />
+
+    <com.aboni.n2kRouter.CalibView
+        android:id="@+id/calibCosViewRO"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/calibSinViewRO"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/lblCalibCos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/cos_label"
+        android:textColor="?android:attr/textColorTertiaryInverse"
+        app:layout_constraintBottom_toBottomOf="@+id/calibCosViewRO"
+        app:layout_constraintEnd_toEndOf="@+id/calibCosViewRO"
+        app:layout_constraintStart_toStartOf="@+id/calibCosViewRO"
+        app:layout_constraintTop_toTopOf="@+id/calibCosViewRO" />
+</androidx.constraintlayout.widget.ConstraintLayout>

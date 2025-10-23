@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/txtCos"
+        android:layout_width="40dp"
+        android:layout_height="24dp"
+        android:text="@string/HEAP_FORMAT"
+        android:textAlignment="viewEnd"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/btnCosHighDec"
+        app:layout_constraintStart_toEndOf="@+id/btnCosLowInc"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibCosLow"
+        tools:text="0000" />
+
+    <TextView
+        android:id="@+id/txtSin"
+        android:layout_width="40dp"
+        android:layout_height="24dp"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/btnSinHighDec"
+        app:layout_constraintStart_toEndOf="@+id/btnSinLowInc"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibSinLow"
+        tools:text="0000" />
+
+    <ImageView
+        android:id="@+id/btnSinLowInc"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintStart_toEndOf="@+id/txtCalibSinLow"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibSinLow"
+        app:srcCompat="@android:drawable/ic_media_next" />
+
+    <ImageView
+        android:id="@+id/btnSinLowDec"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="16dp"
+        android:contentDescription="@string/manual_calibration_btn"
+        android:keyboardNavigationCluster="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibSinLow"
+        app:srcCompat="@android:drawable/ic_media_previous" />
+
+    <ImageView
+        android:id="@+id/btnCosHighDec"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintEnd_toStartOf="@+id/txtCalibCosHigh"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibCosHigh"
+        app:srcCompat="@android:drawable/ic_media_previous" />
+
+    <ImageView
+        android:id="@+id/btnCosHighInc"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibCosHigh"
+        app:srcCompat="@android:drawable/ic_media_next" />
+
+    <ImageView
+        android:id="@+id/btnCosLowInc"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintStart_toEndOf="@+id/txtCalibCosLow"
+        app:layout_constraintTop_toTopOf="@+id/btnCosLowDec"
+        app:srcCompat="@android:drawable/ic_media_next" />
+
+    <ImageView
+        android:id="@+id/btnCosLowDec"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="16dp"
+        android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibCosLow"
+        app:srcCompat="@android:drawable/ic_media_previous" />
+
+    <ImageView
+        android:id="@+id/btnSinHighDec"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintEnd_toStartOf="@+id/txtCalibSinHigh"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibSinHigh"
+        app:srcCompat="@android:drawable/ic_media_previous" />
+
+    <ImageView
+        android:id="@+id/btnSinHighInc"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibSinHigh"
+        app:srcCompat="@android:drawable/ic_media_next" />
+
+    <TextView
+        android:id="@+id/lblHeap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/heap_label"
+        app:layout_constraintBottom_toTopOf="@+id/txtHeap"
+        app:layout_constraintEnd_toEndOf="@+id/txtHeap" />
+
+    <TextView
+        android:id="@+id/txtHeap"
+        android:layout_width="104dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtAngleError"
+        tools:text="000,000" />
+
+    <TextView
+        android:id="@+id/lblSpeedAdj"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/wind_speed_adj_label"
+        app:layout_constraintBottom_toTopOf="@+id/txtSpeedAdj"
+        app:layout_constraintEnd_toEndOf="@+id/txtSpeedAdj" />
+
+    <TextView
+        android:id="@+id/txtSpeedAdj"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toStartOf="@+id/btnSpeedAdjInc"
+        app:layout_constraintTop_toTopOf="@+id/txtHeap"
+        tools:text="0.00" />
+
+    <TextView
+        android:id="@+id/txtCalibSinLow"
+        android:layout_width="40dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@+id/btnSinLowDec"
+        app:layout_constraintTop_toBottomOf="@+id/calibCosView"
+        tools:text="0000" />
+
+    <TextView
+        android:id="@+id/txtCalibSinHigh"
+        android:layout_width="40dp"
+        android:layout_height="24dp"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/btnSinHighInc"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibSinLow"
+        tools:text="4095" />
+
+    <TextView
+        android:id="@+id/lblOffset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/wind_dir_offset_label"
+        app:layout_constraintBottom_toTopOf="@+id/txtOffset"
+        app:layout_constraintEnd_toEndOf="@+id/txtOffset" />
+
+    <TextView
+        android:id="@+id/txtOffset"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toStartOf="@+id/btnOffsetInc"
+        app:layout_constraintTop_toTopOf="@+id/txtAngleError"
+        tools:text="-000" />
+
+
+    <TextView
+        android:id="@+id/txtCalibCosLow"
+        android:layout_width="40dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@+id/btnCosLowDec"
+        app:layout_constraintTop_toBottomOf="@+id/precisionBar"
+        tools:text="0000" />
+
+    <TextView
+        android:id="@+id/txtCalibCosHigh"
+        android:layout_width="40dp"
+        android:layout_height="24dp"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/btnCosHighInc"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibCosLow"
+        tools:text="4095" />
+
+    <com.aboni.n2kRouter.CalibView
+        android:id="@+id/calibSinView"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtCalibSinLow" />
+
+    <TextView
+        android:id="@+id/lblCalibSin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sin_label"
+        android:textColor="?android:attr/textColorTertiaryInverse"
+        app:layout_constraintBottom_toBottomOf="@+id/calibSinView"
+        app:layout_constraintEnd_toEndOf="@+id/calibSinView"
+        app:layout_constraintStart_toStartOf="@+id/calibSinView"
+        app:layout_constraintTop_toBottomOf="@+id/txtSin" />
+
+    <com.aboni.n2kRouter.CalibView
+        android:id="@+id/calibCosView"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtCalibCosLow" />
+
+    <TextView
+        android:id="@+id/lblCalibCos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/cos_label"
+        android:textColor="?android:attr/textColorTertiaryInverse"
+        app:layout_constraintBottom_toBottomOf="@+id/calibCosView"
+        app:layout_constraintEnd_toEndOf="@+id/calibCosView"
+        app:layout_constraintStart_toStartOf="@+id/calibCosView"
+        app:layout_constraintTop_toBottomOf="@+id/txtCos" />
+
+    <ImageView
+        android:id="@+id/btnOffsetInc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txtOffset"
+        app:srcCompat="@android:drawable/ic_media_next" />
+
+    <ImageView
+        android:id="@+id/btnOffsetDec"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/manual_calibration_btn"
+        android:keyboardNavigationCluster="true"
+        app:layout_constraintEnd_toStartOf="@+id/txtOffset"
+        app:layout_constraintTop_toTopOf="@+id/txtOffset"
+        app:srcCompat="@android:drawable/ic_media_previous" />
+
+    <ImageView
+        android:id="@+id/btnSpeedAdjInc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="@string/speed_adjustment_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txtSpeedAdj"
+        app:srcCompat="@android:drawable/ic_media_next" />
+
+    <ImageView
+        android:id="@+id/btnSpeedAdjDec"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/speed_adjustment_btn"
+        android:keyboardNavigationCluster="true"
+        app:layout_constraintEnd_toStartOf="@+id/txtSpeedAdj"
+        app:layout_constraintTop_toTopOf="@+id/txtSpeedAdj"
+        app:srcCompat="@android:drawable/ic_media_previous" />
+
+    <TextView
+        android:id="@+id/lblAngleError"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/calib_ellipse_error_label"
+        app:layout_constraintBottom_toTopOf="@+id/txtAngleError"
+        app:layout_constraintEnd_toEndOf="@+id/txtAngleError" />
+
+    <TextView
+        android:id="@+id/txtAngleError"
+        android:layout_width="104dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:text="@string/HEAP_FORMAT"
+        android:textAlignment="viewEnd"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/calibSinView"
+        tools:text="0.00" />
+
+    <TextView
+        android:id="@+id/lblWindDir"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/wind_dir_label"
+        app:layout_constraintBottom_toTopOf="@+id/txtWindDir"
+        app:layout_constraintEnd_toEndOf="@+id/txtWindDir" />
+
+    <TextView
+        android:id="@+id/txtWindDir"
+        android:layout_width="104dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtHeap"
+        tools:text="000\u00B0 P" />
+
+    <TextView
+        android:id="@+id/lblWindSpeed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/wind_speed_label"
+        app:layout_constraintBottom_toTopOf="@+id/txtWindSpeed"
+        app:layout_constraintEnd_toEndOf="@+id/txtWindSpeed" />
+
+    <TextView
+        android:id="@+id/txtWindSpeed"
+        android:layout_width="116dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/HEAP_FORMAT"
+        android:textAlignment="viewEnd"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtHeap"
+        tools:text="000.00 Kn" />
+
+    <SeekBar
+        android:id="@+id/precisionBar"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:max="10"
+        android:progress="1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnCalibrate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/start_calibration_btn"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/btnCancelCalibration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/cancel_calibration_btn"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnCommitCalibration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/commit_calibration_btn"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnCalibrate"
+        app:layout_constraintStart_toEndOf="@+id/btnCancelCalibration" />
+
+    <com.aboni.n2kRouter.CalibProgressView
+        android:id="@+id/calibProgressView"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/btnCommitCalibration"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

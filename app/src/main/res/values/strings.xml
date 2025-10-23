@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">N2KWind</string>
+
+    <string name="WIND_SPEED_FORMAT" translatable="false">%.1f Kn</string>
+    <string name="WIND_DIR_FORMAT" translatable="false">%d\u00B0 %s</string>
+    <string name="WIND_DIR_OFFSET_FORMAT" translatable="false">%+d\u00B0</string>
+    <string name="HEAP_FORMAT" translatable="false">%,d</string>
+    <string name="CALIB_FORMAT" translatable="false">%d</string>
+    <string name="CALIB_ELLIPSE_FORMAT" translatable="false">%.2f</string>
+    <string name="WIND_SPEED_DIR_OK_FORMAT" translatable="false">%d° %s%n%.1f Kn</string>
+    <string name="WIND_DIR_SPEED_NO_SPEED_FORMAT" translatable="false">%d° %s%n--.-f Kn</string>
+    <string name="WIND_DIR_SPEED_NO_DIR_FORMAT" translatable="false">-° S%n%.1f Kn</string>
+    <string name="WIND_DIR_SPEED_KO_FORMAT" translatable="false">-° S%n- Kn</string>
+
+    <string name="NO_VALUE_STRING" translatable="false">-</string>
+
+    <string name="calibration_card_title">Calibration</string>
+    <string name="data_card_title">Data</string>
+    <string name="scan_card_title">Devices</string>
+
+    <string name="manual_calibration_btn">Manual calibration change</string>
+    <string name="speed_adjustment_btn">Speed adjustment</string>
+    <string name="start_calibration_btn">Calibrate</string>
+    <string name="cancel_calibration_btn">Cancel</string>
+    <string name="commit_calibration_btn">Commit</string>
+
+    <string name="data_heap_label">Heap (KB)</string>
+    <string name="heap_label">Heap (B)</string>
+    <string name="wind_dir_label">AWD</string>
+    <string name="wind_speed_label">AWS</string>
+    <string name="wind_speed_adj_label">Speed Adj.</string>
+    <string name="calib_ellipse_error_label">Ellipse</string>
+    <string name="wind_dir_offset_label">Offset</string>
+    <string name="cos_label">Cos</string>
+    <string name="sin_label">Sin</string>
+
+</resources>
