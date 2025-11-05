@@ -63,7 +63,6 @@ open class IntValue(sz: Int, sg: Boolean): BaseValue() {
         }
         return offset + size
     }
-}
 
     override fun clone(): BaseValue {
         val d = IntValue(size, signed)
