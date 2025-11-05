@@ -49,8 +49,7 @@
                 android:id="@+id/textBTDevice"
                 android:layout_width="128dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="0dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="4dp"
                 android:fontFamily="monospace"
                 android:gravity="center_vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -58,9 +57,10 @@
 
             <ImageView
                 android:id="@+id/imageLogo"
-                android:layout_width="149dp"
-                android:layout_height="105dp"
+                android:layout_width="119dp"
+                android:layout_height="84dp"
                 android:importantForAccessibility="no"
+                android:scaleType="centerInside"
                 android:src="@drawable/itaca_v3"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
@@ -80,11 +80,21 @@
                 android:id="@+id/imgConnection"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:importantForAccessibility="no"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/ic_scanning_off" />
+
+            <TextView
+                android:id="@+id/txtHeap"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="-16dp"
+                android:text="@string/NO_VALUE_STRING"
+                app:layout_constraintBottom_toBottomOf="@+id/imageLogo"
+                app:layout_constraintStart_toStartOf="@+id/imageLogo"
+                tools:text="000,000" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 

@@ -4,14 +4,10 @@
     <string name="WIND_SPEED_FORMAT" translatable="false">%.1f Kn</string>
     <string name="WIND_DIR_FORMAT" translatable="false">%d\u00B0 %s</string>
     <string name="WIND_DIR_OFFSET_FORMAT" translatable="false">%+d\u00B0</string>
-    <string name="HEAP_FORMAT" translatable="false">%,d</string>
+    <string name="HEAP_FORMAT" translatable="false">Heap %,d B</string>
     <string name="CALIB_FORMAT" translatable="false">%d</string>
     <string name="CALIB_ELLIPSE_FORMAT" translatable="false">%.2f</string>
-    <string name="WIND_SPEED_DIR_OK_FORMAT" translatable="false">%d° %s%n%.1f Kn</string>
-    <string name="WIND_DIR_SPEED_NO_SPEED_FORMAT" translatable="false">%d° %s%n--.-f Kn</string>
-    <string name="WIND_DIR_SPEED_NO_DIR_FORMAT" translatable="false">-° S%n%.1f Kn</string>
-    <string name="WIND_DIR_SPEED_KO_FORMAT" translatable="false">-° S%n- Kn</string>
-
+    <string name="ALPHA_FORMAT">%.2f</string>
     <string name="NO_VALUE_STRING" translatable="false">-</string>
 
     <string name="calibration_card_title">Calibration</string>
@@ -25,7 +21,7 @@
     <string name="commit_calibration_btn">Commit</string>
 
     <string name="data_heap_label">Heap (KB)</string>
-    <string name="heap_label">Heap (B)</string>
+    <string name="heap_label">Heap (KB)</string>
     <string name="wind_dir_label">AWD</string>
     <string name="wind_speed_label">AWS</string>
     <string name="wind_speed_adj_label">Speed Adj.</string>
@@ -33,5 +29,13 @@
     <string name="wind_dir_offset_label">Offset</string>
     <string name="cos_label">Cos</string>
     <string name="sin_label">Sin</string>
+    <string name="direction_smoothing_label">Direction 𝛂</string>
+    <string name="speed_smoothing_label">Speed 𝛂</string>
+    <string name="auto_calibration_label">Auto</string>
+    <string name="speed_alpha">Speed smoothing</string>
+    <string name="direction_alpha">Angle smoothing</string>
+    <string name="CALIB_SCORE_FORMAT">%d</string>
+    <string name="calibration_score_label">Score</string>
+    <string name="calibration_score_threshold_label">Score T.</string>
 
 </resources>

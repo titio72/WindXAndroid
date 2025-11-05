@@ -8,9 +8,9 @@ import androidx.core.view.size
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
-class N2KScanView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble) {
+class N2KScanView(context: Context, ble: BLEThing?, val appState: ApplicationState?) : N2KCardPage(context, ble) {
 
-    constructor(context: Context): this(context, null)
+    constructor(context: Context): this(context, null, null)
     //region widgets
     private val deviceListView: RecyclerView
         get() = findViewById(R.id.deviceList)

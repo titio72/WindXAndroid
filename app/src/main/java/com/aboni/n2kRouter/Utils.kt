@@ -4,27 +4,12 @@ import android.content.Context
 import android.util.Log
 import kotlin.math.abs
 
-class CalibrationRange {
-    constructor(sL: Int, sH: Int, cL: Int, cH: Int) {
-        sinLow = sL
-        sinHigh = sH
-        cosLow = cL
-        cosHigh = cH
-    }
-
-    var sinLow: Int = 0
-    var sinHigh: Int = 4095
-    var cosLow: Int = 0
-    var cosHigh: Int = 5095
-}
-
-
-fun byteToInt(v: ByteArray, offset: Int, size: Int): Long? {
+fun byteToInt(v: ByteArray, offset: Int, size: Int, signed: Boolean = true): Long? {
     if ((size+offset)>v.size) return null
     val bytes = v.copyOfRange(offset, offset + size)
     var result = 0L
     var shift = 0
-    val negative = bytes[bytes.size-1] < 0
+    val negative = signed && bytes[bytes.size-1] < 0
     for (byte in bytes) {
         var ub: UByte = byte.toUByte()
         if (negative) ub = ub.inv()

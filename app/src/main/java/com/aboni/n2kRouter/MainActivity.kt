@@ -17,8 +17,9 @@ import java.util.TimerTask
 
 class MainActivity : BLEN2KListener, BLEApp() {
 
+
     private val ble: BLEThing by lazy { BLEThingImpl(this) }
-    private val pageAdapter: N2KPagerAdapter by lazy { N2KPagerAdapter(this, ble) }
+    private val pageAdapter: N2KPagerAdapter by lazy { N2KPagerAdapter(this, ble, appState) }
     private val timer = Timer("BLE connection check", false)
 
     //region Widgets References
@@ -31,9 +32,14 @@ class MainActivity : BLEN2KListener, BLEApp() {
     private val imgConnection: ImageView
         get() = findViewById(R.id.imgConnection)
     //endregion
+    val appState: ApplicationState = ApplicationState()
 
     //region pages
-    private class N2KPagerAdapter(val context: Context, ble: BLEThing): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private class N2KPagerAdapter(val context: Context, ble: BLEThing, val appState: ApplicationState): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+        private val scanView: N2KScanView = N2KScanView(context, ble, appState)
+        private val dataView: N2KDataView = N2KDataView(context, ble, appState)
+        private val calibView: N2KCalibView = N2KCalibView(context, ble, appState)
+        private val views = arrayOf( dataView, calibView, scanView )
 
         class N2KViewPlaceHolder(context: Context): FrameLayout(context) {
 
@@ -47,11 +53,6 @@ class MainActivity : BLEN2KListener, BLEApp() {
         }
 
         class N2KViewHolder(val view: N2KViewPlaceHolder): RecyclerView.ViewHolder(view)
-
-        private val scanView:N2KScanView = N2KScanView(context, ble)
-        private val dataView: N2KDataView = N2KDataView(context, ble)
-        private val calibView: N2KCalibView = N2KCalibView(context, ble)
-        private val views = arrayOf( dataView, calibView, scanView )
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
             val v = N2KViewPlaceHolder(parent.context)
@@ -132,11 +133,17 @@ class MainActivity : BLEN2KListener, BLEApp() {
     }
 
     override fun onData(data: Data) {
+        appState.state = data.state
+        runOnUiThread {
+            if (data.heap.valid) findViewById<TextView>(R.id.txtHeap).text = formatValue(applicationContext, R.string.HEAP_FORMAT, data.heap.value) else findViewById<TextView>(R.id.txtHeap).text = noValueStr(applicationContext)
+        }
     }
 
     override fun onScan(device: DeviceItem) {
-        if (btDeviceTxtView.deviceItem.idMatch(device)) {
-            btDeviceTxtView.deviceItem = device
+        runOnUiThread {
+            if (btDeviceTxtView.deviceItem.idMatch(device)) {
+                btDeviceTxtView.deviceItem = device
+            }
         }
     }
 

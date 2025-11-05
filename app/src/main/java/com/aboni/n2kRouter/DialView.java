@@ -27,17 +27,15 @@ public class DialView extends MyView {
     }
 
     private int angle = 0;
+    private int angleSmooth = 0;
     private float err = 1.0f;
-
     private Calibration calibration;
-
     private final Paint dialPaint;
     private final Paint anglePaint;
-    private final Paint errPaint;
-
-    private final Paint greenPaint;
-    private final Paint redPaint;
-
+    private final Paint angleSmoothPaint;
+    private final Paint calibPaint;
+    private final Paint starboardPaint;
+    private final Paint portPaint;
     private int desiredHeight = 3;
     private int desiredWidth = 3;
 
@@ -47,10 +45,11 @@ public class DialView extends MyView {
         context.getTheme().resolveAttribute(android.R.attr.colorAccent, typedValue, true);
         dialPaint = getStrokePaint(getContext(), 4f, typedValue.data);
         dialPaint.setTextSize(50);
-        anglePaint = getStrokePaint(getContext(), 12f, Color.RED);
-        errPaint = getStrokePaint(getContext(), 12f, Color.LTGRAY);
-        greenPaint = getStrokePaint(getContext(), 12f, Color.GREEN);
-        redPaint = getStrokePaint(getContext(), 12f, Color.RED);
+        anglePaint = getStrokePaint(getContext(), 24f, Color.RED);
+        angleSmoothPaint = getStrokePaint(getContext(), 24f, Color.BLUE);
+        starboardPaint = getStrokePaint(getContext(), 12f, Color.GREEN);
+        portPaint = getStrokePaint(getContext(), 12f, Color.RED);
+        calibPaint = getStrokePaint(getContext(), 12f, 0xAAAA6600);
     }
 
     public int getDesiredHeight() {
@@ -74,15 +73,21 @@ public class DialView extends MyView {
     }
 
     public void setCalibration(Calibration calibration) {
-        this.calibration = calibration;
+        if (calibration==null) this.calibration = null;
+        else this.calibration = new Calibration(calibration);
     }
 
     public int getAngle() {
         return angle;
     }
 
-    public void setAngle(int angle) {
+    public int getAngleSmooth() {
+        return angleSmooth;
+    }
+
+    public void setAngle(int angle, int smooth) {
         this.angle = angle;
+        this.angleSmooth = smooth;
     }
 
     public void setErr(float err) {
@@ -92,48 +97,7 @@ public class DialView extends MyView {
     public float getErr() {
         return err;
     }
-/*
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int desiredWidth = getDesiredWidth();
-        int desiredHeight = getDesiredHeight();
 
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-
-        int width;
-        int height;
-
-        //Measure Width
-        if (widthMode == MeasureSpec.EXACTLY) {
-            //Must be this size
-            width = widthSize;
-        } else if (widthMode == MeasureSpec.AT_MOST) {
-            //Can't be bigger than...
-            width = Math.min(desiredWidth, widthSize);
-        } else {
-            //Be whatever you want
-            width = desiredWidth;
-        }
-
-        //Measure Height
-        if (heightMode == MeasureSpec.EXACTLY) {
-            //Must be this size
-            height = heightSize;
-        } else if (heightMode == MeasureSpec.AT_MOST) {
-            //Can't be bigger than...
-            height = Math.min(desiredHeight, heightSize);
-        } else {
-            //Be whatever you want
-            height = desiredHeight;
-        }
-
-        //MUST CALL THIS
-        setMeasuredDimension(width, height);
-    }
-*/
     protected CompassData fillCompassData() {
         CompassData cd = new CompassData();
         cd.w = getWidth();
@@ -156,14 +120,14 @@ public class DialView extends MyView {
     @Override
     public void onDraw(@NonNull Canvas canvas) {
         CompassData d = fillCompassData();
-        canvas.drawLine(0, getHeight()/2.0f, getWidth(), getHeight()/2.0f, dialPaint);
-        canvas.drawLine(getWidth()/2.0f, 0, getWidth()/2.0f, getHeight(), dialPaint);
+        canvas.drawLine(0, getHeight()/2.0f, getWidth()/2.0f - 0.5f * d.rDial, getHeight()/2.0f, dialPaint);
+        canvas.drawLine(getWidth()/2.0f + 0.5f * d.rDial, getHeight()/2.0f, getWidth(), getHeight()/2.0f, dialPaint);
+        canvas.drawLine(getWidth()/2.0f, 0, getWidth()/2.0f, getHeight()/2.0f - 0.5f * d.rDial, dialPaint);
+        canvas.drawLine(getWidth()/2.0f, getHeight()/2.0f + 0.5f * d.rDial, getWidth()/2.0f, getHeight(), dialPaint);
 
         float quadFactor = 0.95f * d.rDial;
-
-        canvas.drawArc((d.cx - quadFactor), (d.cy - quadFactor), (d.cx + quadFactor), (d.cy + quadFactor), 300.0f, 120.0f, false, greenPaint);
-        canvas.drawArc((d.cx - quadFactor), (d.cy - quadFactor), (d.cx + quadFactor), (d.cy + quadFactor), 120.0f, 120.0f, false, redPaint);
-
+        canvas.drawArc((d.cx - quadFactor), (d.cy - quadFactor), (d.cx + quadFactor), (d.cy + quadFactor), 300.0f, 120.0f, false, starboardPaint);
+        canvas.drawArc((d.cx - quadFactor), (d.cy - quadFactor), (d.cx + quadFactor), (d.cy + quadFactor), 120.0f, 120.0f, false, portPaint);
 
         float totA = 0.0f;
         int step = 2;
@@ -171,14 +135,16 @@ public class DialView extends MyView {
             float a0 = (i == 0) ? 0 : (i - step);
             canvas.rotate((float) i - a0, d.cx, d.cy);
             totA = (float) i;
-            Paint p = (calibration==null || !calibration.isAngleOk(i))?dialPaint: greenPaint;
-            canvas.drawLine(d.cx, d.cy - d.rDial, d.cx, (d.cy - (d.rDial * 1.1f)), p);
+            canvas.drawLine(d.cx, d.cy - d.rDial, d.cx, (d.cy - (d.rDial * 1.1f)), dialPaint);
+            if (calibration!=null && calibration.isAngleOk(i)) {
+                canvas.drawLine(d.cx, d.cy - (d.rDial * 1.05f) , d.cx, (d.cy - (d.rDial * 1.08f)), calibPaint);
+            }
             if (i % 30 == 0) {
                 int x = i>180 ? 360 - i : i;
                 String t = "" + x;//String.format("%d", x);
-                p.getTextBounds(t, 0, t.length(), rect);
-                canvas.drawText(t, 0, t.length(), d.cx - (rect.width() / 2f), (d.cy - (d.rDial * 1.01f)) - rect.height(), p);
-                canvas.drawLine(d.cx, d.cy - (d.rDial * 0.9f), d.cx, (d.cy - (d.rDial * 1.1f)), p);
+                dialPaint.getTextBounds(t, 0, t.length(), rect);
+                canvas.drawText(t, 0, t.length(), d.cx - (rect.width() / 2f), (d.cy - (d.rDial * 1.01f)) - rect.height(), dialPaint);
+                canvas.drawLine(d.cx, d.cy - (d.rDial * 0.9f), d.cx, (d.cy - (d.rDial * 1.1f)), dialPaint);
             }
         }
         canvas.rotate(-totA, d.cx, d.cy);
@@ -186,8 +152,13 @@ public class DialView extends MyView {
         if (angle!=-1) {
             canvas.rotate(angle, d.cx, d.cy);
             canvas.drawLine(d.cx, d.cy - d.rDial, d.cx, (d.cy - (d.rDial * 1.1f)), anglePaint);
-            canvas.drawLine(d.cx, d.cy - (d.rDial * 0.8f) * err, d.cx, d.cy - d.rDial * 0.8f, errPaint);
+            canvas.drawLine(d.cx, d.cy - (d.rDial * 0.8f) * err, d.cx, d.cy - d.rDial * 0.8f, dialPaint);
             canvas.rotate(-angle, d.cx, d.cy);
+        }
+        if (angleSmooth!=-1) {
+            canvas.rotate(angleSmooth, d.cx, d.cy);
+            canvas.drawLine(d.cx, d.cy - d.rDial, d.cx, (d.cy - (d.rDial * 1.1f)), angleSmoothPaint);
+            canvas.rotate(-angleSmooth, d.cx, d.cy);
         }
     }
 }

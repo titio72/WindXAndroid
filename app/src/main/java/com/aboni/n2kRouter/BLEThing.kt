@@ -17,9 +17,9 @@ import android.content.Context.MODE_PRIVATE
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelUuid
-import android.util.Log
 import java.io.FileNotFoundException
 import java.util.HashMap
+import java.util.LinkedList
 import java.util.UUID
 
 private val SERVICE_UUID = UUID.fromString("32890585-c6ee-498b-9e7a-044baefb6542")
@@ -30,7 +30,7 @@ private val CHARACTERISTIC_CMD_UUID = UUID.fromString("c3fe2075-ac6c-40bf-8073-7
 private val CCC_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
 interface BLEThing {
-    val data: Data
+    //val data: Data
     fun saveDeviceName(n: String)
     fun postOffset(offset: Int)
     fun postCalibration(c: CalibrationRange)
@@ -52,11 +52,16 @@ interface BLEThing {
     fun commitCalibration()
     fun startCalibration(): Boolean
     fun sendHeartbeat()
+    fun postDirectionSmoothing(progress: Int)
+    fun postSpeedSmoothing(progress: Int)
+    fun postAutoCalibrationToggle()
+    fun postCalibrationScoreThreshold(toInt: Int)
 }
 
 class BLEThingImpl(private val context: Context): BLEThing {
 
-    override val data = Data()
+    //override val data = Data()
+    val data = Data()
 
     private val listeners: MutableList<BLEN2KListener> = ArrayList()
     private val deviceList: MutableMap<String, BluetoothDevice> = HashMap<String, BluetoothDevice>()
@@ -95,74 +100,96 @@ class BLEThingImpl(private val context: Context): BLEThing {
         listeners.add(listener)
     }
 
+    fun queueUpCommand(cmd: String) {
+        synchronized(commandQueue) {
+            commandQueue.add(CommandQueueItem(cmd))
+            if (commandQueue.size==1) execCommandQueue()
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun execCommandQueue() {
+        synchronized(commandQueue) {
+            if (!commandQueue.isEmpty()) {
+                val c = commandQueue.pop()
+                characteristicCommand?.let {
+                    connectedGatt?.writeCharacteristic(
+                        characteristicCommand!!,
+                        c.command.toByteArray(Charsets.UTF_8),
+                        BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                    )
+                }
+            }
+        }
+    }
+
+    class CommandQueueItem(val cmd: String) {
+        val command: String
+            get() = cmd
+    }
+
+    val commandQueue = LinkedList<CommandQueueItem>()
 
     // region save configuration commands
     @SuppressLint("MissingPermission")
     override fun saveDeviceName(n: String) {
-        characteristicCommand?.let {
-            connectedGatt?.writeCharacteristic(
-                characteristicCommand!!,
-                ("N$n").toByteArray(Charsets.UTF_8),
-                BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-            )
-        }
+        queueUpCommand("N$n")
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun postAutoCalibrationToggle() {
+        queueUpCommand("P")
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun postDirectionSmoothing(progress: Int) {
+        queueUpCommand("Q$progress")
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun postSpeedSmoothing(progress: Int) {
+        queueUpCommand("W$progress")
     }
 
     @SuppressLint("MissingPermission")
     override fun postOffset(offset: Int) {
-        characteristicCommand?.let {
-            Log.i("WIND BLE", "Command {O$offset}")
-            connectedGatt?.writeCharacteristic(characteristicCommand!!, "O%d".format(offset).toByteArray(Charsets.UTF_8), BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
-        }
+        queueUpCommand("O$offset")
     }
 
     @SuppressLint("MissingPermission")
     override fun postSpeedAdjustment(sa: Int) {
-        characteristicCommand?.let {
-            Log.i("WIND BLE", "Command {K$sa}")
-            connectedGatt?.writeCharacteristic(characteristicCommand!!, "K%d".format(sa).toByteArray(Charsets.UTF_8), BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
-        }
+        queueUpCommand("K$sa")
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun postCalibrationScoreThreshold(toInt: Int) {
+        queueUpCommand("T$toInt")
     }
 
     @SuppressLint("MissingPermission")
     override fun postCalibration(c: CalibrationRange) {
-        characteristicCommand?.let {
-            connectedGatt?.writeCharacteristic(characteristicCommand!!, "S%d|%d|%d|%d".format(c.sinLow, c.sinHigh, c.cosLow, c.cosHigh).toByteArray(Charsets.UTF_8), BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
-        }
+        queueUpCommand("S${c.sinLow}|${c.sinHigh}|${c.cosLow}|${c.cosHigh}")
     }
 
     @SuppressLint("MissingPermission")
     override fun startCalibration(): Boolean {
-        characteristicCommand?.let {
-            if (connectedGatt != null) {
-                val written = connectedGatt!!.writeCharacteristic(characteristicCommand!!, "C".toByteArray(Charsets.UTF_8), BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
-                return written>0
-            }
-        }
-        return false
+        queueUpCommand("C")
+        return true
     }
 
     @SuppressLint("MissingPermission")
     override fun sendHeartbeat() {
-        characteristicCommand?.let {
-            if (connectedGatt != null) {
-                connectedGatt!!.writeCharacteristic(characteristicCommand!!, "H".toByteArray(Charsets.UTF_8), BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
-            }
-        }
+        queueUpCommand("H")
     }
 
     @SuppressLint("MissingPermission")
     override fun commitCalibration() {
-        characteristicCommand?.let {
-            connectedGatt?.writeCharacteristic(characteristicCommand!!, "R".toByteArray(Charsets.UTF_8), BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
-        }
+        queueUpCommand("R")
     }
 
     @SuppressLint("MissingPermission")
     override fun cancelCalibration() {
-        characteristicCommand?.let {
-            connectedGatt?.writeCharacteristic(characteristicCommand!!, "A".toByteArray(Charsets.UTF_8), BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
-        }
+        queueUpCommand("A")
     }
     // endregion
 
@@ -254,9 +281,7 @@ class BLEThingImpl(private val context: Context): BLEThing {
         if (!isScanning) {
             isScanning = true
             appendLog("Start BLE scanning")
-            for (l in listeners) {
-                l.onStatus(lifecycleStatus, isScanning)
-            }
+            for (l in listeners) l.onStatus(lifecycleStatus, isScanning)
             bluetoothManager.adapter.bluetoothLeScanner.startScan(
                 mutableListOf(scanFilter),
                 scanSettings,
@@ -271,9 +296,7 @@ class BLEThingImpl(private val context: Context): BLEThing {
         if (isScanning) {
             isScanning = false
             appendLog("Stop BLE scanning")
-            for (l in listeners) {
-                l.onStatus(lifecycleStatus, isScanning)
-            }
+            for (l in listeners) l.onStatus(lifecycleStatus, isScanning)
             bluetoothManager.adapter.bluetoothLeScanner.stopScan(scanCallback)
         }
     }
@@ -286,9 +309,7 @@ class BLEThingImpl(private val context: Context): BLEThing {
             val rssi: Int = result.rssi
             deviceList[address] = result.device
             // notify listeners
-            for (l in listeners) {
-                l.onScan(DeviceItem(name ?: "", address, rssi))
-            }
+            for (l in listeners) l.onScan(DeviceItem(name ?: "", address, rssi))
             // if the device is the one previously connected, and the status is disconnected, try to reconnect
             if (deviceToConnectTo==address && getStatus()==BLELifecycleState.Off) {
                 appendLog("reconnect to $address $name")
@@ -372,7 +393,9 @@ class BLEThingImpl(private val context: Context): BLEThing {
                 }
             } else if (c.uuid.equals(CHARACTERISTIC_DATA_UUID)) {
                 data.parse(value)
-                for (l in listeners) l.onData(data)
+                val dd = Data()
+                dd.copyFrom(data)
+                for (l in listeners) l.onData(dd)
             }
         }
 
@@ -393,7 +416,9 @@ class BLEThingImpl(private val context: Context): BLEThing {
         override fun onCharacteristicChanged(gatt: BluetoothGatt, c: BluetoothGattCharacteristic, v: ByteArray) {
             if (c.uuid.equals(CHARACTERISTIC_DATA_UUID)) {
                 data.parse(v)
-                for (l in listeners) l.onData(data)
+                val dd = Data()
+                dd.copyFrom(data)
+                for (l in listeners) l.onData(dd)
             }
         }
 
@@ -405,6 +430,16 @@ class BLEThingImpl(private val context: Context): BLEThing {
 
             Handler(Looper.getMainLooper()).postDelayed({ gatt?.readRemoteRssi() }, 1000)
 
+        }
+
+        override fun onCharacteristicWrite(
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic?,
+            status: Int
+        ) {
+            if (characteristic?.uuid?.equals(CHARACTERISTIC_CMD_UUID) ?: false) {
+                execCommandQueue()
+            }
         }
     }
 

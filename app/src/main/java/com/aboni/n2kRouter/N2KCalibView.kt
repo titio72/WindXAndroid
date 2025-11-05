@@ -5,17 +5,21 @@ import android.app.Application
 import android.content.Context
 import android.view.View
 import android.widget.ProgressBar
+import android.widget.SeekBar
+import android.widget.Switch
 import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
 import androidx.compose.runtime.structuralEqualityPolicy
+import com.aboni.n2kRouter.ApplicationState.Companion.STATE_CALIBRATING
+import com.aboni.n2kRouter.ApplicationState.Companion.STATE_NORMAL
+import com.aboni.n2kRouter.ApplicationState.Companion.STATE_WAITING
 import kotlin.math.roundToInt
 
-private const val STATE_NORMAL = 0
-private const val STATE_WAITING = 1
-private const val STATE_CALIBRATING = 2
+private val INCREMENTS = arrayOf(1L, 2L, 5L, 10L, 25L, 50L, 100L, 250L)
 
-class N2KCalibView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble) {
+class N2KCalibView(context: Context, ble: BLEThing?, val appState: ApplicationState?) : N2KCardPage(context, ble) {
 
-    constructor(context: Context): this(context, null)
+    constructor(context: Context): this(context, null, null)
 
     private val localDataCache = Data()
 
@@ -35,8 +39,6 @@ class N2KCalibView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble)
         get() = findViewById(R.id.txtCalibCosLow)
     private val calibCosHighTxt: TextView
         get() = findViewById(R.id.txtCalibCosHigh)
-    private val heapTxt: TextView
-        get() = findViewById(R.id.txtHeap)
     private val offsetTxt: TextView
         get() = findViewById(R.id.txtOffset)
     private val angleErrorTxt: TextView
@@ -57,35 +59,13 @@ class N2KCalibView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble)
         get() = findViewById(R.id.btnCommitCalibration)
     private val calibProgress: CalibProgressView
         get() = findViewById(R.id.calibProgressView)
+    private val switchAutoCal: SwitchCompat
+        get() = findViewById(R.id.autoCalibrationSwitch)
+    private val calibScoreTxt: TextView
+        get() = findViewById(R.id.txtCalibScore)
+    private val calibScoreThresholdTxt: TextView
+        get() = findViewById(R.id.txtCalibTextScoreThreshold)
 
-    private var state = STATE_NORMAL
-        set(value) {
-            field = value
-            this.post {
-                when (value) {
-                    STATE_NORMAL -> {
-                        btnCalibrate.isEnabled = true
-                        btnCancelCalibrate.isEnabled = false
-                        btnCommitCalibrate.isEnabled = false
-                    }
-
-                    STATE_WAITING -> {
-                        btnCalibrate.isEnabled = false
-                        btnCancelCalibrate.isEnabled = false
-                        btnCommitCalibrate.isEnabled = false
-                    }
-
-                    STATE_CALIBRATING -> {
-                        btnCalibrate.isEnabled = false
-                        btnCancelCalibrate.isEnabled = true
-                        btnCommitCalibrate.isEnabled = true
-                    }
-                }
-                btnCalibrate.invalidate()
-                btnCommitCalibrate.invalidate()
-                btnCancelCalibrate.invalidate()
-            }
-        }
 
     init {
         initView()
@@ -108,14 +88,42 @@ class N2KCalibView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble)
         findViewById<View>(R.id.btnSpeedAdjDec).setOnClickListener { v -> speedAdjClick(v) }
         findViewById<View>(R.id.btnSpeedAdjInc).setOnClickListener { v -> speedAdjClick(v) }
 
+        findViewById<View>(R.id.btnCalibThresholdDec).setOnClickListener { v -> calibScoreThreshold(v) }
+        findViewById<View>(R.id.btnCalibThresholdInc).setOnClickListener { v -> calibScoreThreshold(v) }
+
         btnCalibrate.setOnClickListener { _ -> onCalibrateClick() }
         btnCancelCalibrate.setOnClickListener { _ -> onCancelCalibrationClick() }
         btnCommitCalibrate.setOnClickListener { _ -> onCommitCalibrationClick() }
 
+        switchAutoCal.setOnClickListener { _ -> autoCalibClick() }
+
         calibViewSin.max = 4095
         calibViewCos.max = 4095
 
-        state = STATE_NORMAL
+        updateCalibrationButtons()
+    }
+
+    private fun updateCalibrationButtons() {
+
+        when (appState?.state) {
+            STATE_NORMAL -> {
+                btnCalibrate.isEnabled = true
+                btnCancelCalibrate.isEnabled = false
+                btnCommitCalibrate.isEnabled = false
+            }
+
+            STATE_WAITING -> {
+                btnCalibrate.isEnabled = false
+                btnCancelCalibrate.isEnabled = false
+                btnCommitCalibrate.isEnabled = false
+            }
+
+            STATE_CALIBRATING -> {
+                btnCalibrate.isEnabled = false
+                btnCancelCalibrate.isEnabled = !localDataCache.isAutocalibrating
+                btnCommitCalibrate.isEnabled = !localDataCache.isAutocalibrating
+            }
+        }
     }
 
     private fun adjustCalLowValue(v: Long): Int {
@@ -126,9 +134,19 @@ class N2KCalibView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble)
         return if (v<0 || v>4095) 4095 else v.toInt()
     }
 
-    private var increment: Long
-        get() = precisionBar.progress.toLong()
-        set(value) { if (value in 0..10) precisionBar.progress = value.toInt() }
+    private val increment: Long
+        get() = INCREMENTS[precisionBar.progress]
+
+    fun calibScoreThreshold(v: View) {
+        var sa = localDataCache.calibrationThreshold.value
+        if (v.id==R.id.btnCalibThresholdDec) sa -= increment
+        else if (v.id==R.id.btnCalibThresholdInc) sa += increment
+        if (sa>100) sa = 100 else if (sa<0) sa = 0
+        ble?.postCalibrationScoreThreshold(sa.toInt())
+    }
+    fun autoCalibClick() {
+        ble?.postAutoCalibrationToggle()
+    }
 
     fun speedAdjClick(view: View) {
         var sa = localDataCache.speedAdjustment.value
@@ -164,113 +182,107 @@ class N2KCalibView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble)
         ble?.postCalibration(calib)
     }
 
-    override fun onData(data: Data) {
-        post {
-            localDataCache.copyFrom(data)
-
-            if (data.iSin.valid) calibViewSin.setAll(
-                data.iSinLow.value.toInt(),
-                data.iSin.value.toInt(),
-                data.iSinHigh.value.toInt()
-            )
-            if (data.iCos.valid) calibViewCos.setAll(
-                data.iCosLow.value.toInt(),
-                data.iCos.value.toInt(),
-                data.iCosHigh.value.toInt()
-            )
-            calibSinLowTxt.text = if (data.iSinLow.valid) formatValue(
-                context,
-                R.string.CALIB_FORMAT,
-                data.iSinLow.value
-            ) else noValueStr(context)
-            calibSinHighTxt.text = if (data.iSinHigh.valid) formatValue(
-                context,
-                R.string.CALIB_FORMAT,
-                data.iSinHigh.value
-            ) else noValueStr(context)
-            calibCosLowTxt.text = if (data.iCosLow.valid) formatValue(
-                context,
-                R.string.CALIB_FORMAT,
-                data.iCosLow.value
-            ) else noValueStr(context)
-            calibCosHighTxt.text = if (data.iCosHigh.valid) formatValue(
-                context,
-                R.string.CALIB_FORMAT,
-                data.iCosHigh.value
-            ) else noValueStr(context)
-            cosTxt.text = if (data.iCos.valid) formatValue(
-                context,
-                R.string.CALIB_FORMAT,
-                data.iCos.value
-            ) else noValueStr(context)
-            sinTxt.text = if (data.iSin.valid) formatValue(
-                context,
-                R.string.CALIB_FORMAT,
-                data.iSin.value
-            ) else noValueStr(context)
-            heapTxt.text = if (data.heap.valid) formatValue(
-                context,
-                R.string.HEAP_FORMAT,
-                data.heap.value
-            ) else noValueStr(context)
-            offsetTxt.text = if (data.angleOffset.valid) formatValue(
-                context,
-                R.string.WIND_DIR_OFFSET_FORMAT,
-                data.angleOffset.value
-            ) else noValueStr(context)
-            angleErrorTxt.text = if (data.err.valid) formatValue(
-                context,
-                R.string.CALIB_ELLIPSE_FORMAT,
-                data.err.value
-            ) else noValueStr(context)
-            speedAdjTxt.text = if (data.speedAdjustment.valid) formatValue(
-                context,
-                R.string.CALIB_ELLIPSE_FORMAT,
-                data.speedAdjustment.value / 100.0
-            ) else noValueStr(context)
-            windDirTxtView.text = if (data.wind.valid) context.getString(R.string.WIND_DIR_FORMAT)
-                .format(
-                    if (data.wind.value > 180.0) (360.0 - data.wind.value).roundToInt() else data.wind.value.roundToInt(),
-                    if (data.wind.value > 180.0) "P" else "S"
-                ) else noValueStr(context)
-            windSpeedTxtView.text = if (data.speed.valid) formatValue(
-                context,
-                R.string.WIND_SPEED_FORMAT,
-                data.speed.value
-            ) else noValueStr(context)
-
-            if (data.isCalibrating) {
-                state = STATE_CALIBRATING
-                calibProgress.setCalibration(
-                    data.calibrationProgress,
-                    if (data.wind.valid) data.wind.value else null
-                )
-            } else {
-                state = STATE_NORMAL
-                calibProgress.setCalibration(null, if (data.wind.valid) data.wind.value else null)
-            }
-        }
-    }
-
-    @SuppressLint("MissingPermission")
     fun onCalibrateClick() {
-        if (state == STATE_NORMAL) {
-            state = STATE_WAITING
+        if (localDataCache.state == STATE_NORMAL || localDataCache.isAutocalibrating) {
+            appState?.state = STATE_WAITING
             ble?.startCalibration()
         }
     }
 
     fun onCancelCalibrationClick() {
-        if (state == STATE_CALIBRATING) {
-            //state = STATE_NORMAL
+        if (localDataCache.state == STATE_CALIBRATING) {
+            appState?.state = STATE_WAITING
             ble?.cancelCalibration()
         }
     }
 
     fun onCommitCalibrationClick() {
-        if (state == STATE_CALIBRATING) {
-            //state = STATE_NORMAL
+        if (localDataCache.state == STATE_CALIBRATING) {
+            appState?.state = STATE_WAITING
             ble?.commitCalibration()
+        }
+    }
+
+    override fun onData(data: Data) {
+        (context as MainActivity).runOnUiThread {
+            localDataCache.copyFrom(data)
+
+            updateCalibrationButtons()
+
+            switchAutoCal.isChecked = localDataCache.isAutocalibrating
+
+            if (localDataCache.iSin.valid) calibViewSin.setAll(
+                localDataCache.iSinLow.value.toInt(),
+                localDataCache.iSin.value.toInt(),
+                localDataCache.iSinHigh.value.toInt()
+            )
+            if (localDataCache.iCos.valid) calibViewCos.setAll(
+                localDataCache.iCosLow.value.toInt(),
+                localDataCache.iCos.value.toInt(),
+                localDataCache.iCosHigh.value.toInt()
+            )
+            calibSinLowTxt.text = if (localDataCache.iSinLow.valid) formatValue(context,
+                R.string.CALIB_FORMAT,
+                localDataCache.iSinLow.value
+            ) else noValueStr(context)
+            calibSinHighTxt.text = if (localDataCache.iSinHigh.valid) formatValue(context,
+                R.string.CALIB_FORMAT,
+                localDataCache.iSinHigh.value
+            ) else noValueStr(context)
+            calibCosLowTxt.text = if (localDataCache.iCosLow.valid) formatValue(context,
+                R.string.CALIB_FORMAT,
+                localDataCache.iCosLow.value
+            ) else noValueStr(context)
+            calibCosHighTxt.text = if (localDataCache.iCosHigh.valid) formatValue(context,
+                R.string.CALIB_FORMAT,
+                localDataCache.iCosHigh.value
+            ) else noValueStr(context)
+            cosTxt.text = if (localDataCache.iCos.valid) formatValue(context,
+                R.string.CALIB_FORMAT,
+                localDataCache.iCos.value
+            ) else noValueStr(context)
+            sinTxt.text = if (localDataCache.iSin.valid) formatValue(context,
+                R.string.CALIB_FORMAT,
+                localDataCache.iSin.value
+            ) else noValueStr(context)
+            offsetTxt.text = if (localDataCache.angleOffset.valid) formatValue(context,
+                R.string.WIND_DIR_OFFSET_FORMAT,
+                localDataCache.angleOffset.value
+            ) else noValueStr(context)
+            angleErrorTxt.text = if (localDataCache.err.valid) formatValue(context,
+                R.string.CALIB_ELLIPSE_FORMAT,
+                localDataCache.err.value
+            ) else noValueStr(context)
+            speedAdjTxt.text = if (localDataCache.speedAdjustment.valid) formatValue(context,
+                R.string.CALIB_ELLIPSE_FORMAT,
+                localDataCache.speedAdjustment.value / 100.0
+            ) else noValueStr(context)
+            windDirTxtView.text = if (localDataCache.wind.valid) context.getString(R.string.WIND_DIR_FORMAT)
+                .format(
+                    if (localDataCache.wind.value > 180.0) (360.0 - localDataCache.wind.value).roundToInt() else localDataCache.wind.value.roundToInt(),
+                    if (localDataCache.wind.value > 180.0) "P" else "S"
+                ) else noValueStr(context)
+            windSpeedTxtView.text = if (localDataCache.speed.valid) formatValue(context,
+                R.string.WIND_SPEED_FORMAT,
+                localDataCache.speed.value
+            ) else noValueStr(context)
+            calibScoreThresholdTxt.text = if (localDataCache.calibrationThreshold.valid) formatValue(context,
+                R.string.CALIB_SCORE_FORMAT,
+                localDataCache.calibrationThreshold.value
+            ) else noValueStr(context)
+
+            if (localDataCache.isCalibrating) {
+                calibProgress.setCalibration(
+                    localDataCache.calibrationProgress,
+                    if (localDataCache.wind.valid) localDataCache.wind.value else null)
+                calibScoreTxt.text = formatValue(
+                    context,
+                    R.string.CALIB_SCORE_FORMAT,
+                    localDataCache.calibrationProgress.score)
+            } else {
+                calibProgress.setCalibration(null, if (localDataCache.wind.valid) localDataCache.wind.value else null)
+                calibScoreTxt.text = noValueStr(context)
+            }
         }
     }
 }

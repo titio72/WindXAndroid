@@ -25,6 +25,8 @@ open class N2KCardPage(context: Context, val ble: BLEThing?): ConstraintLayout(c
     open fun onHeaderImageClicked() {
     }
 
+    open fun onStateChanged(newState: Int, oldState: Int) {}
+
     fun setImageResource(r: Int) {
         cardImage.setImageResource(r)
     }

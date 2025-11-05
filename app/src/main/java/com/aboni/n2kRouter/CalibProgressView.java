@@ -19,10 +19,6 @@ public class CalibProgressView extends MyView {
 
     private Double angle;
 
-    public Calibration getCalibration() {
-        return calibration;
-    }
-
     public void setCalibration(Calibration calibration, Double a) {
         this.calibration = calibration;
         angle = a;
@@ -34,8 +30,8 @@ public class CalibProgressView extends MyView {
         TypedValue typedValue = new TypedValue();
         context.getTheme().resolveAttribute(android.R.attr.colorAccent, typedValue, true);
         dialPaint = getStrokePaint(getContext(), 4f, typedValue.data);
-        calibPaint = getStrokePaint(getContext(), 12f, Color.GREEN);
-        anglePaint = getStrokePaint(getContext(), 4f, Color.RED);
+        calibPaint = getStrokePaint(getContext(), 12f, 0xAAAA6600);
+        anglePaint = getStrokePaint(getContext(), 12f, Color.RED);
     }
 
     public void onDraw(Canvas canvas) {

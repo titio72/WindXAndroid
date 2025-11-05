@@ -11,10 +11,7 @@
         android:id="@+id/dialView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/calibCosViewRO"
+        app:layout_constraintBottom_toBottomOf="@+id/lblDirectionSmoothing2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -28,11 +25,123 @@
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="center"
         android:textSize="36sp"
+        app:layout_constraintEnd_toEndOf="@+id/dialView"
+        app:layout_constraintStart_toStartOf="@+id/dialView"
+        app:layout_constraintBottom_toTopOf="@+id/txtBigSpeedView"
+        tools:text="00.0 Kn" />
+
+    <TextView
+        android:id="@+id/txtBigEllipseView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="center"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="@+id/dialView"
+        app:layout_constraintStart_toStartOf="@+id/dialView"
+        app:layout_constraintTop_toBottomOf="@+id/txtBigSpeedView"
+        tools:text="0.00" />
+
+    <TextView
+        android:id="@+id/txtBigSpeedView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="center"
+        android:textSize="36sp"
         app:layout_constraintBottom_toBottomOf="@+id/dialView"
         app:layout_constraintEnd_toEndOf="@+id/dialView"
         app:layout_constraintStart_toStartOf="@+id/dialView"
         app:layout_constraintTop_toTopOf="@+id/dialView"
-        tools:text="-000.0 P\n00.0 Kn" />
+        tools:text="-000.0° P" />
+
+    <TextView
+        android:id="@+id/lblSpeedSmoothing2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/speed_smoothing_label"
+        app:layout_constraintBottom_toTopOf="@+id/txtSpeedSmoothing2"
+        app:layout_constraintEnd_toEndOf="@+id/btnSpeedSmoothingInc2"
+        app:layout_constraintStart_toStartOf="@+id/btnSpeedSmoothingDec2" />
+
+    <ImageView
+        android:id="@+id/btnSpeedSmoothingDec2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/speed_alpha"
+        android:keyboardNavigationCluster="true"
+        app:layout_constraintEnd_toStartOf="@+id/txtSpeedSmoothing2"
+        app:layout_constraintTop_toTopOf="@+id/txtSpeedSmoothing2"
+        app:srcCompat="@android:drawable/ic_media_previous" />
+
+    <TextView
+        android:id="@+id/txtSpeedSmoothing2"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toStartOf="@+id/btnSpeedSmoothingInc2"
+        app:layout_constraintTop_toTopOf="@+id/btnSpeedSmoothingInc2"
+        tools:text="0.00" />
+
+    <ImageView
+        android:id="@+id/btnSpeedSmoothingInc2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="@string/speed_alpha"
+        app:layout_constraintBottom_toTopOf="@+id/calibCosViewRO"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@android:drawable/ic_media_next" />
+
+
+    <TextView
+        android:id="@+id/lblDirectionSmoothing2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/direction_smoothing_label"
+        app:layout_constraintBottom_toTopOf="@+id/txtDirectionSmoothing2"
+        app:layout_constraintEnd_toEndOf="@+id/btnDirectionSmoothingInc2"
+        app:layout_constraintStart_toStartOf="@+id/btnDirectionSmoothingDec2" />
+
+    <ImageView
+        android:id="@+id/btnDirectionSmoothingDec2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:contentDescription="@string/direction_alpha"
+        android:keyboardNavigationCluster="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txtDirectionSmoothing2"
+        app:srcCompat="@android:drawable/ic_media_previous" />
+
+    <TextView
+        android:id="@+id/txtDirectionSmoothing2"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="24sp"
+        app:layout_constraintStart_toEndOf="@+id/btnDirectionSmoothingDec2"
+        app:layout_constraintTop_toTopOf="@+id/btnDirectionSmoothingInc2"
+        tools:text="0.00" />
+
+    <ImageView
+        android:id="@+id/btnDirectionSmoothingInc2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="@string/direction_alpha"
+        app:layout_constraintBottom_toTopOf="@+id/calibCosViewRO"
+        app:layout_constraintStart_toEndOf="@id/txtDirectionSmoothing2"
+        app:srcCompat="@android:drawable/ic_media_next" />
+
 
     <com.aboni.n2kRouter.CalibView
         android:id="@+id/calibSinViewRO"

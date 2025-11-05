@@ -6,6 +6,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ImageView
+        android:id="@+id/btnCalibThresholdInc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintStart_toEndOf="@+id/txtCalibTextScoreThreshold"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:srcCompat="@android:drawable/ic_media_next" />
+
+    <ImageView
+        android:id="@+id/btnCalibThresholdDec"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:contentDescription="@string/manual_calibration_btn"
+        android:keyboardNavigationCluster="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:srcCompat="@android:drawable/ic_media_previous" />
+
     <TextView
         android:id="@+id/txtCos"
         android:layout_width="40dp"
@@ -13,9 +33,9 @@
         android:text="@string/HEAP_FORMAT"
         android:textAlignment="viewEnd"
         android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/calibCosView"
         app:layout_constraintEnd_toStartOf="@+id/btnCosHighDec"
         app:layout_constraintStart_toEndOf="@+id/btnCosLowInc"
-        app:layout_constraintTop_toTopOf="@+id/txtCalibCosLow"
         tools:text="0000" />
 
     <TextView
@@ -25,9 +45,9 @@
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="viewEnd"
         android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/calibSinView"
         app:layout_constraintEnd_toStartOf="@+id/btnSinHighDec"
         app:layout_constraintStart_toEndOf="@+id/btnSinLowInc"
-        app:layout_constraintTop_toTopOf="@+id/txtCalibSinLow"
         tools:text="0000" />
 
     <ImageView
@@ -108,27 +128,6 @@
         app:srcCompat="@android:drawable/ic_media_next" />
 
     <TextView
-        android:id="@+id/lblHeap"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/heap_label"
-        app:layout_constraintBottom_toTopOf="@+id/txtHeap"
-        app:layout_constraintEnd_toEndOf="@+id/txtHeap" />
-
-    <TextView
-        android:id="@+id/txtHeap"
-        android:layout_width="104dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
-        android:text="@string/NO_VALUE_STRING"
-        android:textAlignment="viewEnd"
-        android:textSize="24sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtAngleError"
-        tools:text="000,000" />
-
-    <TextView
         android:id="@+id/lblSpeedAdj"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -144,19 +143,18 @@
         android:textAlignment="viewEnd"
         android:textSize="24sp"
         app:layout_constraintEnd_toStartOf="@+id/btnSpeedAdjInc"
-        app:layout_constraintTop_toTopOf="@+id/txtHeap"
+        app:layout_constraintTop_toTopOf="@+id/txtOffset"
         tools:text="0.00" />
 
     <TextView
         android:id="@+id/txtCalibSinLow"
         android:layout_width="40dp"
         android:layout_height="24dp"
-        android:layout_marginTop="16dp"
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="viewEnd"
         android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/txtSin"
         app:layout_constraintStart_toEndOf="@+id/btnSinLowDec"
-        app:layout_constraintTop_toBottomOf="@+id/calibCosView"
         tools:text="0000" />
 
     <TextView
@@ -166,8 +164,8 @@
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="viewEnd"
         android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/txtSin"
         app:layout_constraintEnd_toStartOf="@+id/btnSinHighInc"
-        app:layout_constraintTop_toTopOf="@+id/txtCalibSinLow"
         tools:text="4095" />
 
     <TextView
@@ -180,13 +178,14 @@
 
     <TextView
         android:id="@+id/txtOffset"
-        android:layout_width="48dp"
+        android:layout_width="64dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="viewEnd"
         android:textSize="24sp"
-        app:layout_constraintEnd_toStartOf="@+id/btnOffsetInc"
-        app:layout_constraintTop_toTopOf="@+id/txtAngleError"
+        app:layout_constraintStart_toEndOf="@+id/btnOffsetDec"
+        app:layout_constraintTop_toBottomOf="@+id/txtAngleError"
         tools:text="-000" />
 
 
@@ -194,12 +193,11 @@
         android:id="@+id/txtCalibCosLow"
         android:layout_width="40dp"
         android:layout_height="24dp"
-        android:layout_marginTop="16dp"
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="viewEnd"
         android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/txtCos"
         app:layout_constraintStart_toEndOf="@+id/btnCosLowDec"
-        app:layout_constraintTop_toBottomOf="@+id/precisionBar"
         tools:text="0000" />
 
     <TextView
@@ -209,8 +207,8 @@
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="viewEnd"
         android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/txtCos"
         app:layout_constraintEnd_toStartOf="@+id/btnCosHighInc"
-        app:layout_constraintTop_toTopOf="@+id/txtCalibCosLow"
         tools:text="4095" />
 
     <com.aboni.n2kRouter.CalibView
@@ -219,9 +217,10 @@
         android:layout_height="32dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
+        app:layout_constraintBottom_toTopOf="@+id/txtCalibScore"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtCalibSinLow" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/lblCalibSin"
@@ -240,9 +239,10 @@
         android:layout_height="32dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
+        app:layout_constraintBottom_toBottomOf="@+id/txtSin"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtCalibCosLow" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/lblCalibCos"
@@ -259,9 +259,8 @@
         android:id="@+id/btnOffsetInc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
         android:contentDescription="@string/manual_calibration_btn"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/txtOffset"
         app:layout_constraintTop_toTopOf="@+id/txtOffset"
         app:srcCompat="@android:drawable/ic_media_next" />
 
@@ -269,9 +268,10 @@
         android:id="@+id/btnOffsetDec"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:contentDescription="@string/manual_calibration_btn"
         android:keyboardNavigationCluster="true"
-        app:layout_constraintEnd_toStartOf="@+id/txtOffset"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/txtOffset"
         app:srcCompat="@android:drawable/ic_media_previous" />
 
@@ -305,7 +305,7 @@
 
     <TextView
         android:id="@+id/txtAngleError"
-        android:layout_width="104dp"
+        android:layout_width="72dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="32dp"
@@ -313,7 +313,7 @@
         android:textAlignment="viewEnd"
         android:textSize="24sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/calibSinView"
+        app:layout_constraintTop_toBottomOf="@+id/precisionBar"
         tools:text="0.00" />
 
     <TextView
@@ -326,15 +326,14 @@
 
     <TextView
         android:id="@+id/txtWindDir"
-        android:layout_width="104dp"
+        android:layout_width="88dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="viewEnd"
         android:textSize="24sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtHeap"
+        app:layout_constraintEnd_toStartOf="@+id/txtWindSpeed"
+        app:layout_constraintStart_toEndOf="@+id/txtAngleError"
+        app:layout_constraintTop_toTopOf="@+id/txtAngleError"
         tools:text="000\u00B0 P" />
 
     <TextView
@@ -349,13 +348,12 @@
         android:id="@+id/txtWindSpeed"
         android:layout_width="116dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
         android:layout_marginEnd="16dp"
         android:text="@string/HEAP_FORMAT"
         android:textAlignment="viewEnd"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtHeap"
+        app:layout_constraintTop_toTopOf="@+id/txtWindDir"
         tools:text="000.00 Kn" />
 
     <SeekBar
@@ -364,10 +362,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:max="10"
-        android:progress="1"
+        android:max="7"
+        android:progress="3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -412,5 +410,56 @@
         app:layout_constraintBottom_toTopOf="@+id/btnCommitCalibration"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/autoCalibrationSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:text="@string/auto_calibration_label"
+        app:layout_constraintBottom_toBottomOf="@+id/txtCalibScore"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txtCalibScore"
+        tools:text="Auto calibration" />
+
+    <TextView
+        android:id="@+id/txtCalibScore"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/calibProgressView"
+        app:layout_constraintEnd_toStartOf="@+id/autoCalibrationSwitch"
+        app:layout_constraintStart_toEndOf="@+id/btnCalibThresholdInc"
+        tools:text="100" />
+
+    <TextView
+        android:id="@+id/lblCalibScore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/calibration_score_label"
+        app:layout_constraintBottom_toTopOf="@+id/txtCalibScore"
+        app:layout_constraintEnd_toEndOf="@+id/txtCalibScore" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/calibration_score_threshold_label"
+        app:layout_constraintBottom_toTopOf="@+id/txtCalibTextScoreThreshold"
+        app:layout_constraintEnd_toEndOf="@+id/txtCalibTextScoreThreshold" />
+
+    <TextView
+        android:id="@+id/txtCalibTextScoreThreshold"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:text="@string/NO_VALUE_STRING"
+        android:textAlignment="viewEnd"
+        android:textSize="24dp"
+        app:layout_constraintStart_toEndOf="@+id/btnCalibThresholdDec"
+        app:layout_constraintTop_toBottomOf="@+id/lblCalibScore"
+        tools:text="100" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
