@@ -6,9 +6,9 @@ import android.widget.Switch
 import android.widget.TextView
 import kotlin.math.roundToInt
 
-class N2KDataView(context: Context, ble: BLEThing?, val appState: ApplicationState?) : N2KCardPage(context, ble) {
+class N2KDataView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble) {
 
-    constructor(context: Context): this(context, null, null)
+    constructor(context: Context): this(context, null)
 
     private val bigAngleTxtView: TextView
         get() = findViewById(R.id.txtBigAngleView)
@@ -34,7 +34,8 @@ class N2KDataView(context: Context, ble: BLEThing?, val appState: ApplicationSta
         get() = findViewById(R.id.btnDirectionSmoothingDec2)
     private val btnDirectionAlphaInc: ImageView
         get() = findViewById(R.id.btnDirectionSmoothingInc2)
-
+    private val transducerTextView: TextView
+        get() = findViewById(R.id.txtBigTransducer)
     private var cacheData: Data? = null
 
     init {
@@ -43,28 +44,28 @@ class N2KDataView(context: Context, ble: BLEThing?, val appState: ApplicationSta
         setTitleResource(R.string.data_card_title)
         setImageResource(android.R.drawable.ic_menu_view)
 
-        btnSpeedAlphaDec.setOnClickListener { _ -> speedAlphaClick( -1) }
-        btnSpeedAlphaInc.setOnClickListener { _ -> speedAlphaClick(1) }
-        btnDirectionAlphaDec.setOnClickListener { _ -> directionAlphaClick(-1) }
-        btnDirectionAlphaInc.setOnClickListener { _ -> directionAlphaClick(1) }
+        btnSpeedAlphaDec.setOnClickListener { _ -> speedAlphaClick( -5) }
+        btnSpeedAlphaInc.setOnClickListener { _ -> speedAlphaClick(5) }
+        btnDirectionAlphaDec.setOnClickListener { _ -> directionAlphaClick(-5) }
+        btnDirectionAlphaInc.setOnClickListener { _ -> directionAlphaClick(5) }
     }
 
     fun speedAlphaClick(inc: Int) {
         if (cacheData!=null && ble!=null && cacheData!!.speedSmoothing.valid)
-            ble.postSpeedSmoothing((cacheData!!.speedSmoothing.value + inc).coerceAtMost(50).coerceAtLeast(0).toInt());
+            ble.postSpeedSmoothing((cacheData!!.speedSmoothing.value + inc).coerceAtMost(100).coerceAtLeast(0).toInt());
     }
 
     fun directionAlphaClick(inc: Int) {
         if (cacheData!=null && ble!=null && cacheData!!.angleSmoothing.valid)
-            ble.postDirectionSmoothing((cacheData!!.angleSmoothing.value + inc).coerceAtMost(50).coerceAtLeast(0).toInt());
+            ble.postDirectionSmoothing((cacheData!!.angleSmoothing.value + inc).coerceAtMost(100).coerceAtLeast(0).toInt());
     }
 
     override fun onData(data: Data) {
         (context as MainActivity).runOnUiThread {
             cacheData = data
             if (cacheData!!.wind.valid) {
-                dialWind.setAngle(cacheData!!.wind.value.roundToInt(), cacheData!!.windSmooth.value.toInt())
-                dialWind.err = cacheData!!.err.value.toFloat()
+                dialWind.setAngle(cacheData!!.wind.value.roundToInt(), cacheData!!.windSmooth.value.roundToInt(), cacheData!!.windOutput.value.roundToInt())
+                dialWind.setErr(cacheData!!.err.value.toFloat())
                 dialWind.calibration = cacheData!!.calibrationProgress
                 dialWind.invalidate()
                 calibViewSin.value = cacheData!!.iSin.value.toInt()
@@ -78,17 +79,17 @@ class N2KDataView(context: Context, ble: BLEThing?, val appState: ApplicationSta
                 calibViewCos.max = 4095
                 calibViewCos.invalidate()
             } else {
-                dialWind.setAngle(-1, -1)
+                dialWind.setAngle(-1, -1, -1)
                 dialWind.invalidate()
             }
 
-            if (cacheData!!.speedSmoothing.valid) speedAlpha.text = formatValue(context, R.string.ALPHA_FORMAT, cacheData!!.speedSmoothing.value / 50.0) else speedAlpha.text = noValueStr(context)
-            if (cacheData!!.angleSmoothing.valid) directionAlpha.text = formatValue(context, R.string.ALPHA_FORMAT, cacheData!!.angleSmoothing.value / 50.0) else directionAlpha.text = noValueStr(context)
+            if (cacheData!!.speedSmoothing.valid) speedAlpha.text = formatValue(context, R.string.ALPHA_FORMAT, cacheData!!.speedSmoothing.value / 100.0) else speedAlpha.text = noValueStr(context)
+            if (cacheData!!.angleSmoothing.valid) directionAlpha.text = formatValue(context, R.string.ALPHA_FORMAT, cacheData!!.angleSmoothing.value / 100.0) else directionAlpha.text = noValueStr(context)
 
 
             if (cacheData!!.wind.valid) {
                 if (cacheData!!.wind.value > 180.0)
-                    bigAngleTxtView.text = context.getString(R.string.WIND_DIR_FORMAT).format((360.0 - cacheData!!.wind.value).roundToInt(), "P")
+                    bigAngleTxtView.text = context.getString(R.string.WIND_DIR_FORMAT).format((360.0 - cacheData!!.windOutput.value).roundToInt(), "P")
                 else
                     bigAngleTxtView.text = context.getString(R.string.WIND_DIR_FORMAT).format(cacheData!!.wind.value.roundToInt(), "S")
             } else bigAngleTxtView.text = noValueStr(context)
@@ -96,7 +97,15 @@ class N2KDataView(context: Context, ble: BLEThing?, val appState: ApplicationSta
             if (cacheData!!.speed.valid) bigSpeedTxtView.text = formatValue(context, R.string.WIND_SPEED_FORMAT, cacheData!!.speed.value) else bigSpeedTxtView.text = noValueStr(context)
             if (cacheData!!.err.valid) bigEllipseTxtView.text = formatValue(context, R.string.CALIB_ELLIPSE_FORMAT, cacheData!!.err.value) else bigEllipseTxtView.text = noValueStr(context)
 
+            transducerTextView.text = vaneTypeToStr(cacheData!!.vaneType)
         }
+    }
 
+    fun vaneTypeToStr(vaneType: IntValue): String {
+         return if (vaneType.valid) {
+            if (vaneType.value==0L) "ST50"
+            else if (vaneType.value==1L) "ST60"
+            else "Unknown"
+        } else noValueStr(context)
     }
 }

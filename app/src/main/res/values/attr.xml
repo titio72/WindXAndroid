@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="needle_color" format="reference|color" />
+    <attr name="smooth_needle_color" format="reference|color" />
+    <attr name="out_needle_color" format="reference|color" />
+    <attr name="calib_progress_color" format="reference|color" />
+    <attr name="red_sector_color" format="reference|color" />
+    <attr name="green_sector_color" format="reference|color" />
+    <attr name="calib_progress_ok_color" format="reference|color" />
+</resources>

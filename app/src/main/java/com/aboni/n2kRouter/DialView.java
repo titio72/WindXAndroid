@@ -1,12 +1,12 @@
 package com.aboni.n2kRouter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,12 +26,18 @@ public class DialView extends MyView {
         public float rDial;
     }
 
+    private Bitmap cache;
+
+    private CompassData compassData;
+
     private int angle = 0;
     private int angleSmooth = 0;
+    private int angleOut = 0;
     private float err = 1.0f;
     private Calibration calibration;
     private final Paint dialPaint;
     private final Paint anglePaint;
+    private final Paint angleOutPaint;
     private final Paint angleSmoothPaint;
     private final Paint calibPaint;
     private final Paint starboardPaint;
@@ -41,15 +47,21 @@ public class DialView extends MyView {
 
     public DialView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        TypedValue typedValue = new TypedValue();
-        context.getTheme().resolveAttribute(android.R.attr.colorAccent, typedValue, true);
-        dialPaint = getStrokePaint(getContext(), 4f, typedValue.data);
+
+        int needleColor = getThemeColorId(context, R.attr.needle_color);
+        int smoothNeedleColor = getThemeColorId(context, R.attr.smooth_needle_color);
+        int outNeedleColor = getThemeColorId(context, R.attr.out_needle_color);
+        int greenSectorColor = getThemeColorId(context, R.attr.green_sector_color);
+        int redSectorColor = getThemeColorId(context, R.attr.red_sector_color);
+        int calibProgressColor = getThemeColorId(context, R.attr.calib_progress_color);
+        dialPaint = getStrokePaint(getContext(), 4f, getThemeColorId(context, android.R.attr.colorAccent));
         dialPaint.setTextSize(50);
-        anglePaint = getStrokePaint(getContext(), 24f, Color.RED);
-        angleSmoothPaint = getStrokePaint(getContext(), 24f, Color.BLUE);
-        starboardPaint = getStrokePaint(getContext(), 12f, Color.GREEN);
-        portPaint = getStrokePaint(getContext(), 12f, Color.RED);
-        calibPaint = getStrokePaint(getContext(), 12f, 0xAAAA6600);
+        anglePaint = getStrokePaint(getContext(), 24f, needleColor);
+        angleOutPaint = getStrokePaint(getContext(), 24f, outNeedleColor);
+        angleSmoothPaint = getStrokePaint(getContext(), 24f, smoothNeedleColor);
+        starboardPaint = getStrokePaint(getContext(), 12f, greenSectorColor);
+        portPaint = getStrokePaint(getContext(), 12f, redSectorColor);
+        calibPaint = getStrokePaint(getContext(), 12f, calibProgressColor);
     }
 
     public int getDesiredHeight() {
@@ -77,25 +89,14 @@ public class DialView extends MyView {
         else this.calibration = new Calibration(calibration);
     }
 
-    public int getAngle() {
-        return angle;
-    }
-
-    public int getAngleSmooth() {
-        return angleSmooth;
-    }
-
-    public void setAngle(int angle, int smooth) {
+    public void setAngle(int angle, int smooth, int angleOut) {
         this.angle = angle;
         this.angleSmooth = smooth;
+        this.angleOut = angleOut;
     }
 
     public void setErr(float err) {
         this.err = err;
-    }
-
-    public float getErr() {
-        return err;
     }
 
     protected CompassData fillCompassData() {
@@ -117,18 +118,20 @@ public class DialView extends MyView {
 
     private final Rect rect = new Rect();
 
-    @Override
-    public void onDraw(@NonNull Canvas canvas) {
-        CompassData d = fillCompassData();
+    private void drawCrossAir(Canvas canvas, CompassData d) {
         canvas.drawLine(0, getHeight()/2.0f, getWidth()/2.0f - 0.5f * d.rDial, getHeight()/2.0f, dialPaint);
         canvas.drawLine(getWidth()/2.0f + 0.5f * d.rDial, getHeight()/2.0f, getWidth(), getHeight()/2.0f, dialPaint);
         canvas.drawLine(getWidth()/2.0f, 0, getWidth()/2.0f, getHeight()/2.0f - 0.5f * d.rDial, dialPaint);
         canvas.drawLine(getWidth()/2.0f, getHeight()/2.0f + 0.5f * d.rDial, getWidth()/2.0f, getHeight(), dialPaint);
+    }
 
+    private void drawRedGreenSectors(Canvas canvas, CompassData d) {
         float quadFactor = 0.95f * d.rDial;
         canvas.drawArc((d.cx - quadFactor), (d.cy - quadFactor), (d.cx + quadFactor), (d.cy + quadFactor), 300.0f, 120.0f, false, starboardPaint);
         canvas.drawArc((d.cx - quadFactor), (d.cy - quadFactor), (d.cx + quadFactor), (d.cy + quadFactor), 120.0f, 120.0f, false, portPaint);
+    }
 
+    private void drawDial(Canvas canvas, CompassData d) {
         float totA = 0.0f;
         int step = 2;
         for (int i = 0; i < 360; i+=step) {
@@ -136,9 +139,6 @@ public class DialView extends MyView {
             canvas.rotate((float) i - a0, d.cx, d.cy);
             totA = (float) i;
             canvas.drawLine(d.cx, d.cy - d.rDial, d.cx, (d.cy - (d.rDial * 1.1f)), dialPaint);
-            if (calibration!=null && calibration.isAngleOk(i)) {
-                canvas.drawLine(d.cx, d.cy - (d.rDial * 1.05f) , d.cx, (d.cy - (d.rDial * 1.08f)), calibPaint);
-            }
             if (i % 30 == 0) {
                 int x = i>180 ? 360 - i : i;
                 String t = "" + x;//String.format("%d", x);
@@ -149,16 +149,50 @@ public class DialView extends MyView {
         }
         canvas.rotate(-totA, d.cx, d.cy);
         canvas.drawCircle(d.cx, d.cy, d.rDial * 0.8f, dialPaint);
+    }
+
+    void drawCalibration(Canvas canvas, CompassData d) {
+        float totA = 0.0f;
+        int step = 2;
+        for (int i = 0; i < 360; i+=step) {
+            float a0 = (i == 0) ? 0 : (i - step);
+            canvas.rotate((float) i - a0, d.cx, d.cy);
+            totA = (float) i;
+            if (calibration.isAngleOk(i)) {
+                canvas.drawLine(d.cx, d.cy - (d.rDial * 1.05f) , d.cx, (d.cy - (d.rDial * 1.08f)), calibPaint);
+            }
+        }
+        canvas.rotate(-totA, d.cx, d.cy);
+    }
+
+    private void drawNeedle(Canvas canvas, CompassData d, Paint paint, float angle, float err) {
         if (angle!=-1) {
             canvas.rotate(angle, d.cx, d.cy);
-            canvas.drawLine(d.cx, d.cy - d.rDial, d.cx, (d.cy - (d.rDial * 1.1f)), anglePaint);
-            canvas.drawLine(d.cx, d.cy - (d.rDial * 0.8f) * err, d.cx, d.cy - d.rDial * 0.8f, dialPaint);
+            Path path = new Path();
+            path.moveTo(d.cx, d.cy - d.rDial);
+            path.lineTo(d.cx - d.rDial * 0.03f, d.cy - d.rDial * 1.08f);
+            path.lineTo(d.cx + d.rDial * 0.03f, d.cy - d.rDial * 1.08f);
+            path.close();
+            canvas.drawPath(path, paint);
+            if (err>0.0f) canvas.drawLine(d.cx, d.cy - (d.rDial * 0.8f) * err, d.cx, d.cy - d.rDial * 0.8f, dialPaint);
             canvas.rotate(-angle, d.cx, d.cy);
         }
-        if (angleSmooth!=-1) {
-            canvas.rotate(angleSmooth, d.cx, d.cy);
-            canvas.drawLine(d.cx, d.cy - d.rDial, d.cx, (d.cy - (d.rDial * 1.1f)), angleSmoothPaint);
-            canvas.rotate(-angleSmooth, d.cx, d.cy);
+    }
+
+    @Override
+    public void onDraw(@NonNull Canvas canvas) {
+        if (cache==null) {
+            compassData = fillCompassData();
+            cache = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas bpmCanvas = new Canvas(cache);
+            drawCrossAir(bpmCanvas, compassData);
+            drawRedGreenSectors(bpmCanvas, compassData);
+            drawDial(bpmCanvas, compassData);
         }
+        canvas.drawBitmap(cache, 0, 0, null);
+        if (calibration!=null) drawCalibration(canvas, compassData);
+        if (angle!=-1) drawNeedle(canvas, compassData, anglePaint, angle, err);
+        if (angleSmooth!=-1) drawNeedle(canvas, compassData, angleSmoothPaint, angleSmooth, -1.0f);
+        if (angleOut!=-1) drawNeedle(canvas, compassData, angleOutPaint, angleOut, -1.0f);
     }
 }

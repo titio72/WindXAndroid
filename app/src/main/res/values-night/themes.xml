@@ -3,5 +3,12 @@
     <style name="Base.Theme.N2KRouter" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="needle_color">#FFAAAA00</item>
+        <item name="out_needle_color">#FFFFFF00</item>
+        <item name="smooth_needle_color">#FF777700</item>
+        <item name="calib_progress_color">#FFFF6600</item>
+        <item name="red_sector_color">#FFAA0000</item>
+        <item name="green_sector_color">#FF00AA00</item>
+        <item name="calib_progress_ok_color">#FF007700</item>
     </style>
 </resources>

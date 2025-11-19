@@ -1,25 +1,18 @@
 package com.aboni.n2kRouter
 
-import android.annotation.SuppressLint
-import android.app.Application
+
 import android.content.Context
 import android.view.View
 import android.widget.ProgressBar
-import android.widget.SeekBar
-import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
-import androidx.compose.runtime.structuralEqualityPolicy
-import com.aboni.n2kRouter.ApplicationState.Companion.STATE_CALIBRATING
-import com.aboni.n2kRouter.ApplicationState.Companion.STATE_NORMAL
-import com.aboni.n2kRouter.ApplicationState.Companion.STATE_WAITING
 import kotlin.math.roundToInt
 
 private val INCREMENTS = arrayOf(1L, 2L, 5L, 10L, 25L, 50L, 100L, 250L)
 
-class N2KCalibView(context: Context, ble: BLEThing?, val appState: ApplicationState?) : N2KCardPage(context, ble) {
+class N2KCalibView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble) {
 
-    constructor(context: Context): this(context, null, null)
+    constructor(context: Context): this(context, null)
 
     private val localDataCache = Data()
 
@@ -51,8 +44,6 @@ class N2KCalibView(context: Context, ble: BLEThing?, val appState: ApplicationSt
         get() = findViewById(R.id.txtCos)
     private val sinTxt: TextView
         get() = findViewById(R.id.txtSin)
-    private val btnCalibrate: TextView
-        get() = findViewById(R.id.btnCalibrate)
     private val btnCancelCalibrate: TextView
         get() = findViewById(R.id.btnCancelCalibration)
     private val btnCommitCalibrate: TextView
@@ -91,7 +82,6 @@ class N2KCalibView(context: Context, ble: BLEThing?, val appState: ApplicationSt
         findViewById<View>(R.id.btnCalibThresholdDec).setOnClickListener { v -> calibScoreThreshold(v) }
         findViewById<View>(R.id.btnCalibThresholdInc).setOnClickListener { v -> calibScoreThreshold(v) }
 
-        btnCalibrate.setOnClickListener { _ -> onCalibrateClick() }
         btnCancelCalibrate.setOnClickListener { _ -> onCancelCalibrationClick() }
         btnCommitCalibrate.setOnClickListener { _ -> onCommitCalibrationClick() }
 
@@ -104,26 +94,8 @@ class N2KCalibView(context: Context, ble: BLEThing?, val appState: ApplicationSt
     }
 
     private fun updateCalibrationButtons() {
-
-        when (appState?.state) {
-            STATE_NORMAL -> {
-                btnCalibrate.isEnabled = true
-                btnCancelCalibrate.isEnabled = false
-                btnCommitCalibrate.isEnabled = false
-            }
-
-            STATE_WAITING -> {
-                btnCalibrate.isEnabled = false
-                btnCancelCalibrate.isEnabled = false
-                btnCommitCalibrate.isEnabled = false
-            }
-
-            STATE_CALIBRATING -> {
-                btnCalibrate.isEnabled = false
-                btnCancelCalibrate.isEnabled = !localDataCache.isAutocalibrating
-                btnCommitCalibrate.isEnabled = !localDataCache.isAutocalibrating
-            }
-        }
+        btnCancelCalibrate.isEnabled = true
+        btnCommitCalibrate.isEnabled = localDataCache.autoCalibration.value == 0L && localDataCache.calibValid.asBoolean() == true
     }
 
     private fun adjustCalLowValue(v: Long): Int {
@@ -182,25 +154,12 @@ class N2KCalibView(context: Context, ble: BLEThing?, val appState: ApplicationSt
         ble?.postCalibration(calib)
     }
 
-    fun onCalibrateClick() {
-        if (localDataCache.state == STATE_NORMAL || localDataCache.isAutocalibrating) {
-            appState?.state = STATE_WAITING
-            ble?.startCalibration()
-        }
-    }
-
     fun onCancelCalibrationClick() {
-        if (localDataCache.state == STATE_CALIBRATING) {
-            appState?.state = STATE_WAITING
-            ble?.cancelCalibration()
-        }
+        ble?.cancelCalibration()
     }
 
     fun onCommitCalibrationClick() {
-        if (localDataCache.state == STATE_CALIBRATING) {
-            appState?.state = STATE_WAITING
-            ble?.commitCalibration()
-        }
+        ble?.commitCalibration()
     }
 
     override fun onData(data: Data) {
@@ -274,13 +233,14 @@ class N2KCalibView(context: Context, ble: BLEThing?, val appState: ApplicationSt
             if (localDataCache.isCalibrating) {
                 calibProgress.setCalibration(
                     localDataCache.calibrationProgress,
-                    if (localDataCache.wind.valid) localDataCache.wind.value else null)
+                    if (localDataCache.wind.valid) localDataCache.wind.value else null, (if (localDataCache.calibInScore.valid) localDataCache.calibInScore.asBoolean() else false) == true
+                )
                 calibScoreTxt.text = formatValue(
                     context,
                     R.string.CALIB_SCORE_FORMAT,
                     localDataCache.calibrationProgress.score)
             } else {
-                calibProgress.setCalibration(null, if (localDataCache.wind.valid) localDataCache.wind.value else null)
+                calibProgress.setCalibration(null, if (localDataCache.wind.valid) localDataCache.wind.value else null, false)
                 calibScoreTxt.text = noValueStr(context)
             }
         }

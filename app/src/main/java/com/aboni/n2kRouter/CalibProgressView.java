@@ -13,25 +13,29 @@ public class CalibProgressView extends MyView {
 
     private final Paint dialPaint;
     private final Paint calibPaint;
+    private final Paint calibOkPaint;
     private final Paint anglePaint;
 
     private Calibration calibration;
 
     private Double angle;
 
-    public void setCalibration(Calibration calibration, Double a) {
+    private boolean ok;
+
+    public void setCalibration(Calibration calibration, Double a, boolean ok) {
         this.calibration = calibration;
         angle = a;
+        this.ok = ok;
         invalidate();
     }
 
     public CalibProgressView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        TypedValue typedValue = new TypedValue();
-        context.getTheme().resolveAttribute(android.R.attr.colorAccent, typedValue, true);
-        dialPaint = getStrokePaint(getContext(), 4f, typedValue.data);
-        calibPaint = getStrokePaint(getContext(), 12f, 0xAAAA6600);
-        anglePaint = getStrokePaint(getContext(), 12f, Color.RED);
+        ok = false;
+        dialPaint = getStrokePaint(getContext(), 4f, getThemeColorId(context, android.R.attr.colorAccent));
+        calibPaint = getStrokePaint(getContext(), 12f, getThemeColorId(context, R.attr.calib_progress_color));
+        calibOkPaint = getStrokePaint(getContext(), 12f, getThemeColorId(context, R.attr.calib_progress_ok_color));
+        anglePaint = getStrokePaint(getContext(), 12f, getThemeColorId(context, R.attr.needle_color));
     }
 
     public void onDraw(Canvas canvas) {
@@ -43,9 +47,9 @@ public class CalibProgressView extends MyView {
         if (calibration!=null) {
             int step = 2;
             for (int i = 0; i < 360; i += step) {
-                Paint p = (calibration == null || !calibration.isAngleOk(i)) ? dialPaint : calibPaint;
+                Paint p = (calibration == null || !calibration.isAngleOk(i)) ? dialPaint : (ok?calibOkPaint:calibPaint);
                 float x = (float) ((w - 4) * i / 360.0 + 2);
-                canvas.drawLine(x, 2, x, h - 2, p);
+                canvas.drawLine(x, 10, x, h - 10, p);
             }
         }
 

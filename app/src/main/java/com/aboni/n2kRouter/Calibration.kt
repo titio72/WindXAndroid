@@ -57,7 +57,7 @@ class Calibration(): BaseValue() {
             valid = false
             score = 0
             this.data = null
-            return offset + 1
+            return offset + 2
         } else {
             val calibBufferSize = nSamples / 8 + (if (nSamples % 8 > 0) 1 else 0)
             this.data = ByteArray(calibBufferSize + 1)

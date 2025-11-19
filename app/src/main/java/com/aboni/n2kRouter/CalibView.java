@@ -14,10 +14,7 @@ public class CalibView extends MyView {
     private final Paint dialPaint;
     private final Paint anglePaint;
     private final Paint rangePaint;
-    private final Paint rangeSelectedPaint;
 
-
-    private boolean sel = false;
     private int low = 0;
     private int high = 4096;
     private int max = 4096;
@@ -27,10 +24,10 @@ public class CalibView extends MyView {
         super(context, attrs);
         TypedValue typedValue = new TypedValue();
         context.getTheme().resolveAttribute(android.R.attr.colorAccent, typedValue, true);
+
         dialPaint = getStrokePaint(getContext(), 4f, typedValue.data);
         anglePaint = getStrokePaint(getContext(), 12f, Color.RED);
         rangePaint = getFillPaint(getContext(), 0.0f, typedValue.data);
-        rangeSelectedPaint = getFillPaint(getContext(), 0.0f, Color.YELLOW);
     }
 
     public void onDraw(Canvas canvas) {
@@ -38,7 +35,7 @@ public class CalibView extends MyView {
         float start = (float) (getWidth() * getLow()) /getMax();
         float end = (float) (getWidth() * getHigh()) /getMax();
         float v = (float) (getWidth() * getValue()) /getMax();
-        canvas.drawRect(start, 0, end, getHeight(), sel?rangeSelectedPaint:rangePaint);
+        canvas.drawRect(start, 0, end, getHeight(), rangePaint);
         canvas.drawLine(v, 0, v, getHeight(), anglePaint);
     }
 
@@ -79,13 +76,5 @@ public class CalibView extends MyView {
 
     public void setLow(int low) {
         this.low = low;
-    }
-
-    public boolean isCalSelected() {
-        return sel;
-    }
-
-    public void setCalSelected(boolean selected) {
-        this.sel = selected;
     }
 }

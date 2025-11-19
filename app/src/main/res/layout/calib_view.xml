@@ -52,47 +52,47 @@
 
     <ImageView
         android:id="@+id/btnSinLowInc"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:contentDescription="@string/manual_calibration_btn"
         app:layout_constraintStart_toEndOf="@+id/txtCalibSinLow"
-        app:layout_constraintTop_toTopOf="@+id/txtCalibSinLow"
+        app:layout_constraintTop_toTopOf="@+id/btnSinLowDec"
         app:srcCompat="@android:drawable/ic_media_next" />
 
     <ImageView
         android:id="@+id/btnSinLowDec"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginStart="16dp"
         android:contentDescription="@string/manual_calibration_btn"
         android:keyboardNavigationCluster="true"
+        app:layout_constraintBottom_toBottomOf="@+id/txtSin"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/txtCalibSinLow"
         app:srcCompat="@android:drawable/ic_media_previous" />
 
     <ImageView
         android:id="@+id/btnCosHighDec"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintBottom_toBottomOf="@+id/txtCos"
         app:layout_constraintEnd_toStartOf="@+id/txtCalibCosHigh"
-        app:layout_constraintTop_toTopOf="@+id/txtCalibCosHigh"
         app:srcCompat="@android:drawable/ic_media_previous" />
 
     <ImageView
         android:id="@+id/btnCosHighInc"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginEnd="16dp"
         android:contentDescription="@string/manual_calibration_btn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/txtCalibCosHigh"
+        app:layout_constraintTop_toTopOf="@+id/btnCosHighDec"
         app:srcCompat="@android:drawable/ic_media_next" />
 
     <ImageView
         android:id="@+id/btnCosLowInc"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:contentDescription="@string/manual_calibration_btn"
         app:layout_constraintStart_toEndOf="@+id/txtCalibCosLow"
         app:layout_constraintTop_toTopOf="@+id/btnCosLowDec"
@@ -100,31 +100,31 @@
 
     <ImageView
         android:id="@+id/btnCosLowDec"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginStart="16dp"
         android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintBottom_toTopOf="@+id/calibCosView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/txtCalibCosLow"
         app:srcCompat="@android:drawable/ic_media_previous" />
 
     <ImageView
         android:id="@+id/btnSinHighDec"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:contentDescription="@string/manual_calibration_btn"
+        app:layout_constraintBottom_toBottomOf="@+id/txtSin"
         app:layout_constraintEnd_toStartOf="@+id/txtCalibSinHigh"
-        app:layout_constraintTop_toTopOf="@+id/txtCalibSinHigh"
         app:srcCompat="@android:drawable/ic_media_previous" />
 
     <ImageView
         android:id="@+id/btnSinHighInc"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginEnd="16dp"
         android:contentDescription="@string/manual_calibration_btn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/txtCalibSinHigh"
+        app:layout_constraintTop_toTopOf="@+id/btnSinHighDec"
         app:srcCompat="@android:drawable/ic_media_next" />
 
     <TextView
@@ -153,8 +153,9 @@
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="viewEnd"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@+id/txtSin"
+        app:layout_constraintBottom_toBottomOf="@+id/btnSinLowDec"
         app:layout_constraintStart_toEndOf="@+id/btnSinLowDec"
+        app:layout_constraintTop_toTopOf="@+id/btnSinLowDec"
         tools:text="0000" />
 
     <TextView
@@ -164,8 +165,9 @@
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="viewEnd"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@+id/txtSin"
+        app:layout_constraintBottom_toBottomOf="@+id/btnSinHighDec"
         app:layout_constraintEnd_toStartOf="@+id/btnSinHighInc"
+        app:layout_constraintTop_toTopOf="@+id/btnSinHighDec"
         tools:text="4095" />
 
     <TextView
@@ -192,12 +194,13 @@
     <TextView
         android:id="@+id/txtCalibCosLow"
         android:layout_width="40dp"
-        android:layout_height="24dp"
+        android:layout_height="wrap_content"
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="viewEnd"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@+id/txtCos"
+        app:layout_constraintBottom_toBottomOf="@+id/btnCosLowDec"
         app:layout_constraintStart_toEndOf="@+id/btnCosLowDec"
+        app:layout_constraintTop_toTopOf="@+id/btnCosLowDec"
         tools:text="0000" />
 
     <TextView
@@ -207,8 +210,9 @@
         android:text="@string/NO_VALUE_STRING"
         android:textAlignment="viewEnd"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@+id/txtCos"
+        app:layout_constraintBottom_toBottomOf="@+id/btnCosHighDec"
         app:layout_constraintEnd_toStartOf="@+id/btnCosHighInc"
+        app:layout_constraintTop_toTopOf="@+id/btnCosHighDec"
         tools:text="4095" />
 
     <com.aboni.n2kRouter.CalibView
@@ -239,7 +243,7 @@
         android:layout_height="32dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="36dp"
         app:layout_constraintBottom_toBottomOf="@+id/txtSin"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -371,16 +375,6 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/btnCalibrate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/start_calibration_btn"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <Button
         android:id="@+id/btnCancelCalibration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -394,11 +388,11 @@
         android:id="@+id/btnCommitCalibration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:text="@string/commit_calibration_btn"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnCalibrate"
-        app:layout_constraintStart_toEndOf="@+id/btnCancelCalibration" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <com.aboni.n2kRouter.CalibProgressView
         android:id="@+id/calibProgressView"

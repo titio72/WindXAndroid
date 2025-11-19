@@ -80,6 +80,19 @@ open class IntValue(sz: Int, sg: Boolean): BaseValue() {
     }
 }
 
+class BooleanValue: IntValue(1, false) {
+    fun asBoolean(): Boolean? {
+        return if (valid) value==1L else null
+    }
+
+    override fun clone(): BaseValue {
+        val d = BooleanValue()
+        d.value = value
+        d.valid = valid
+        return d;
+    }
+}
+
 class TimeValue : IntValue(4, false) {
     fun asTime(): Instant? {
         return if (valid) Instant.ofEpochSecond(value) else null
@@ -92,3 +105,43 @@ class TimeValue : IntValue(4, false) {
         return d
     }
 }
+
+class StringValue(maxSize: Int): BaseValue() {
+
+    var value: String? = null
+
+    var maxLen = maxSize
+
+    override fun clone(): BaseValue {
+        val d = StringValue(maxLen)
+        d.value = value
+        d.valid = valid
+        return d
+    }
+
+    override fun copyFrom(v: BaseValue) {
+        if (v !is StringValue) throw RuntimeException("wrong type");
+        value = v.value
+        valid = v.valid
+        maxLen = v.maxLen
+    }
+
+    override fun parseValue(data: ByteArray, offset: Int): Int {
+        val size = data[offset].toInt()
+        if (size>0 && size<=data.size-offset && size<=maxLen) {
+            val i = offset + 1
+            value = data.copyOfRange(i, i + size).toString(Charsets.UTF_8)
+            valid = true
+            return i + size
+        } else if (size==0) {
+            value = ""
+            valid = true
+            return offset + 1
+        } else {
+            value = null
+            valid = false
+            throw RuntimeException("Invalid string to parse")
+        }
+    }
+}
+

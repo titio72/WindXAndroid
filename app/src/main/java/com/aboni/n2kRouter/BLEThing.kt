@@ -13,18 +13,18 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelUuid
-import java.io.FileNotFoundException
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import java.util.HashMap
 import java.util.LinkedList
 import java.util.UUID
 
 private val SERVICE_UUID = UUID.fromString("32890585-c6ee-498b-9e7a-044baefb6542")
 private val CHARACTERISTIC_CONF_UUID = UUID.fromString("c04a9b9c-3ab6-4cce-9b59-1b582112e693")
-private val CHARACTERISTIC_CALB_UUID = UUID.fromString("a267cdc3-9868-42ed-9a77-70ee04542d38")
 private val CHARACTERISTIC_DATA_UUID = UUID.fromString("003d0cab-70f7-43ac-8ab9-db26466572af")
 private val CHARACTERISTIC_CMD_UUID = UUID.fromString("c3fe2075-ac6c-40bf-8073-73a110453725")
 private val CCC_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
@@ -58,10 +58,11 @@ interface BLEThing {
     fun postCalibrationScoreThreshold(toInt: Int)
 }
 
-class BLEThingImpl(private val context: Context): BLEThing {
+class BLEThingImpl(private val mainActivity: MainActivity): BLEThing {
 
-    //override val data = Data()
     val data = Data()
+
+    val prefs = PrefsStore(mainActivity)
 
     private val listeners: MutableList<BLEN2KListener> = ArrayList()
     private val deviceList: MutableMap<String, BluetoothDevice> = HashMap<String, BluetoothDevice>()
@@ -75,7 +76,7 @@ class BLEThingImpl(private val context: Context): BLEThing {
 
 
     private val bluetoothManager: BluetoothManager by lazy {
-        context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        mainActivity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     }
 
     private var lifecycleStatus: BLELifecycleState =
@@ -87,12 +88,13 @@ class BLEThingImpl(private val context: Context): BLEThing {
 
     private var deviceToConnectTo: String? = null
         set(value) {
+            val oldValue = field
             field = value
-            connect()
+            if (oldValue!=value) connect()
         }
 
     init {
-        deviceToConnectTo = readFromFile()
+        loadPrefs()
     }
 
     override fun addListener(listener: BLEN2KListener) {
@@ -194,7 +196,6 @@ class BLEThingImpl(private val context: Context): BLEThing {
     // endregion
 
     //region lifecycle
-
     @SuppressLint("MissingPermission")
     override fun getConnectedDevice(): DeviceItem? {
         return if (connectedGatt==null) null else DeviceItem(connectedGatt!!.device.name, connectedGatt!!.device.address)
@@ -220,7 +221,7 @@ class BLEThingImpl(private val context: Context): BLEThing {
         val d: BluetoothDevice? = if (deviceToConnectTo==null) null else deviceList.getOrDefault(deviceToConnectTo, null)
         if (d!=null) {
             lifecycleStatus = BLELifecycleState.Connect
-            d.connectGatt(context, false, gattCallback)
+            d.connectGatt(mainActivity, false, gattCallback)
         }
     }
 
@@ -337,7 +338,7 @@ class BLEThingImpl(private val context: Context): BLEThing {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     appendLog("Connected to $deviceAddress")
-                    saveToFile()
+                    savePrefs()
                     lifecycleStatus = BLELifecycleState.Discover
                     val res = gatt.requestMtu(128)
                     appendLog("Request mtu $res")
@@ -442,21 +443,16 @@ class BLEThingImpl(private val context: Context): BLEThing {
             }
         }
     }
+    // end region
 
-    private fun saveToFile() {
-        val fos = context.openFileOutput("n2k.data", MODE_PRIVATE)
-        if (deviceToConnectTo!=null) fos.write(deviceToConnectTo!!.toByteArray(Charsets.UTF_8))
-        fos.close()
+    // region preference storage
+    private fun savePrefs() {
+        mainActivity.lifecycleScope.launch { prefs.storeConnectedDevice(if (deviceToConnectTo!=null) deviceToConnectTo!! else "") }
     }
 
-    private fun readFromFile(): String? {
-        try {
-            val fis = context.openFileInput("n2k.data")
-            val b = fis.readBytes()
-            fis.close()
-            return String(b)
-        } catch (e: FileNotFoundException) {
-            return null
+    private fun loadPrefs() {
+        prefs.connectedDevice.asLiveData().observe(mainActivity) { device ->
+            deviceToConnectTo = device.ifEmpty { null }
         }
     }
     //endregion

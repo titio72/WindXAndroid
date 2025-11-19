@@ -4,31 +4,12 @@ package com.aboni.n2kRouter
 class Data {
 
     fun copyFrom(data: Data) {
-        wind.copyFrom(data.wind)
-        windSmooth.copyFrom(data.windSmooth)
-        err.copyFrom(data.err)
-        heap.copyFrom(data.heap)
-        error.copyFrom(data.error)
-        iSin.copyFrom(data.iSin)
-        iSinLow.copyFrom(data.iSinLow)
-        iSinHigh.copyFrom(data.iSinHigh)
-        iCos.copyFrom(data.iCos)
-        iCosLow.copyFrom(data.iCosLow)
-        iCosHigh.copyFrom(data.iCosHigh)
-        speed.copyFrom(data.speed)
-        errorSpeed.copyFrom(data.errorSpeed)
-        angleOffset.copyFrom(data.angleOffset)
-        speedAdjustment.copyFrom(data.speedAdjustment)
-        n2kSource.copyFrom(data.n2kSource)
-        angleSmoothing.copyFrom(data.angleSmoothing)
-        speedSmoothing.copyFrom(data.speedSmoothing)
-        calibrationThreshold.copyFrom(data.calibrationThreshold)
-        autoCalibration.copyFrom(data.autoCalibration)
-        calibrationProgress.copyFrom(data.calibrationProgress)
+        for (i in fields.indices) fields[i].copyFrom(data.fields[i]);
     }
 
     val wind = DoubleValue(2, 0.1)
     val windSmooth = DoubleValue(2, 0.1)
+    val windOutput = DoubleValue(2, 0.1)
     val err = DoubleValue(2, 0.001)
     val heap = IntValue(4, false)
     val error = IntValue(4, true)
@@ -48,33 +29,31 @@ class Data {
     val autoCalibration = IntValue(1, false)
     val calibrationProgress = Calibration()
     val calibrationThreshold = IntValue(1, false)
+    val vaneType = IntValue(1, false)
+    val n2kBusError = IntValue(1, false)
+    val calibValid = BooleanValue()
+    val calibInScore = BooleanValue()
+
+    private val fields: Array<BaseValue> = arrayOf(
+        wind, windSmooth, windOutput, err, heap, error,
+        iSin, iSinLow, iSinHigh, iCos, iCosLow, iCosHigh,
+        speed, errorSpeed, angleOffset, speedAdjustment,
+        n2kSource, angleSmoothing, speedSmoothing,
+        calibrationThreshold, autoCalibration, calibrationProgress,
+        n2kBusError, vaneType, calibValid, calibInScore)
+
+
+    fun dump(data: ByteArray) {
+        var s = "->"
+        for (b in data) s = "$s $b"
+        appendLog("received data: $s")
+    }
 
     fun parse(data: ByteArray) {
-        /*var s = "->"
-        for (b in data) s = "$s $b"
-        appendLog("received data: $s")*/
-        var offset = 0;
-        offset = wind.parseValue(data, offset)
-        offset = windSmooth.parseValue(data, offset)
-        offset = err.parseValue(data, offset)
-        offset = heap.parseValue(data, offset)
-        offset = error.parseValue(data, offset)
-        offset = iSin.parseValue(data, offset)
-        offset = iSinLow.parseValue(data, offset)
-        offset = iSinHigh.parseValue(data, offset)
-        offset = iCos.parseValue(data, offset)
-        offset = iCosLow.parseValue(data, offset)
-        offset = iCosHigh.parseValue(data, offset)
-        offset = speed.parseValue(data, offset)
-        offset = errorSpeed.parseValue(data, offset)
-        offset = angleOffset.parseValue(data, offset)
-        offset = speedAdjustment.parseValue(data, offset);
-        offset = n2kSource.parseValue(data, offset)
-        offset = angleSmoothing.parseValue(data, offset)
-        offset = speedSmoothing.parseValue(data, offset)
-        offset = calibrationThreshold.parseValue(data, offset)
-        offset = autoCalibration.parseValue(data, offset)
-        calibrationProgress.parseValue(data, offset)
+        var offset = 0
+        for (f in fields) {
+            offset = f.parseValue(data, offset)
+        }
     }
 
     val isAutocalibrating: Boolean
@@ -83,10 +62,4 @@ class Data {
     val isCalibrating: Boolean
         get() = calibrationProgress.valid
 
-    val state: Int
-        get() {
-            return if (calibrationProgress.valid && autoCalibration.valid && autoCalibration.value == 1L) ApplicationState.STATE_NORMAL
-            else if (calibrationProgress.valid) ApplicationState.STATE_CALIBRATING
-            else ApplicationState.STATE_NORMAL
-        }
 }

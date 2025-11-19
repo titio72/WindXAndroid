@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
+    <!--color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="needle_color_light">#FF0000FF</color>
+    <color name="needle_color_dark">#FFFFFF00</color>
+    <color name="needle_smooth_color_light">#FF0000AA</color>
+    <color name="needle_smooth_color_dark">#FF999900</color>
+    <color name="green_sector_color_light">#FF00FF00</color>
+    <color name="green_sector_color_dark">#FF00AA00</color>
+    <color name="red_sector_color_light">#FFFF0000</color>
+    <color name="red_sector_color_dark">#FFAA0000</color>
+    <color name="calib_progress_color_light">#FFFF6600</color>
+    <color name="calib_progress_color_dark">#FFFF6600</color>
+    <color name="calib_progress_ok_color_light">#FF007700</color>
+    <color name="calib_progress_ok_color_dark">#FF007700</color-->
 </resources>

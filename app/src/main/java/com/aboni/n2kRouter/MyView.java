@@ -1,6 +1,7 @@
 package com.aboni.n2kRouter;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -28,9 +29,13 @@ public abstract class MyView extends View {
         return p;
     }
 
-    protected int resolveThemColor(Context c, int themeColor) {
-        TypedValue outValue = new TypedValue();
-        c.getTheme().resolveAttribute(themeColor, outValue, true);
-        return outValue.data;
+    protected int getThemeColorId(Context context, int id) {
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(id, typedValue, true);
+        return typedValue.data;
+    }
+
+    boolean isNightMode() {
+        return (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
     }
 }

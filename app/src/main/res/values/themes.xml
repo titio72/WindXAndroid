@@ -1,9 +1,16 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+
+
     <!-- Base application theme. -->
     <style name="Base.Theme.N2KRouter" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="needle_color">#FF0000FF</item>
+        <item name="out_needle_color">#FF2288FF</item>
+        <item name="smooth_needle_color">#FF0000AA</item>
+        <item name="calib_progress_color">#FFFF6600</item>
+        <item name="red_sector_color">#FFFF0000</item>
+        <item name="green_sector_color">#FF00FF00</item>
+        <item name="calib_progress_ok_color">#FF007700</item>
     </style>
-
-    <style name="Theme.N2KRouter" parent="Base.Theme.N2KRouter" />
 </resources>
