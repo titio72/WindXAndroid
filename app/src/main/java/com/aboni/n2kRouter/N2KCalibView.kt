@@ -208,9 +208,9 @@ class N2KCalibView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble)
                 R.string.WIND_DIR_OFFSET_FORMAT,
                 localDataCache.angleOffset.value
             ) else noValueStr(context)
-            angleErrorTxt.text = if (localDataCache.err.valid) formatValue(context,
+            angleErrorTxt.text = if (localDataCache.ellipse.valid) formatValue(context,
                 R.string.CALIB_ELLIPSE_FORMAT,
-                localDataCache.err.value
+                localDataCache.ellipse.value
             ) else noValueStr(context)
             speedAdjTxt.text = if (localDataCache.speedAdjustment.valid) formatValue(context,
                 R.string.CALIB_ELLIPSE_FORMAT,

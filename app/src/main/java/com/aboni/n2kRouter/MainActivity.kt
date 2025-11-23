@@ -39,7 +39,10 @@ class MainActivity : BLEN2KListener, BLEApp() {
         private val scanView: N2KScanView = N2KScanView(context, ble)
         private val dataView: N2KDataView = N2KDataView(context, ble)
         private val calibView: N2KCalibView = N2KCalibView(context, ble)
-        private val views = arrayOf( dataView, calibView, scanView )
+
+        private val settingsView: N2KSettingsView = N2KSettingsView(context, ble)
+
+        private val views = arrayOf( dataView, calibView, settingsView, scanView )
 
         class N2KViewPlaceHolder(context: Context): FrameLayout(context) {
 

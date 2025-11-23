@@ -56,6 +56,8 @@ interface BLEThing {
     fun postSpeedSmoothing(progress: Int)
     fun postAutoCalibrationToggle()
     fun postCalibrationScoreThreshold(toInt: Int)
+    fun postDebugToggle(d: Int)
+    fun postVaneType(vaneType: Int)
 }
 
 class BLEThingImpl(private val mainActivity: MainActivity): BLEThing {
@@ -133,65 +135,61 @@ class BLEThingImpl(private val mainActivity: MainActivity): BLEThing {
     val commandQueue = LinkedList<CommandQueueItem>()
 
     // region save configuration commands
-    @SuppressLint("MissingPermission")
     override fun saveDeviceName(n: String) {
         queueUpCommand("N$n")
     }
 
-    @SuppressLint("MissingPermission")
     override fun postAutoCalibrationToggle() {
         queueUpCommand("P")
     }
 
-    @SuppressLint("MissingPermission")
     override fun postDirectionSmoothing(progress: Int) {
         queueUpCommand("Q$progress")
     }
 
-    @SuppressLint("MissingPermission")
     override fun postSpeedSmoothing(progress: Int) {
         queueUpCommand("W$progress")
     }
 
-    @SuppressLint("MissingPermission")
     override fun postOffset(offset: Int) {
         queueUpCommand("O$offset")
     }
 
-    @SuppressLint("MissingPermission")
     override fun postSpeedAdjustment(sa: Int) {
         queueUpCommand("K$sa")
     }
 
-    @SuppressLint("MissingPermission")
     override fun postCalibrationScoreThreshold(toInt: Int) {
         queueUpCommand("T$toInt")
     }
 
-    @SuppressLint("MissingPermission")
     override fun postCalibration(c: CalibrationRange) {
         queueUpCommand("S${c.sinLow}|${c.sinHigh}|${c.cosLow}|${c.cosHigh}")
     }
 
-    @SuppressLint("MissingPermission")
     override fun startCalibration(): Boolean {
         queueUpCommand("C")
         return true
     }
 
-    @SuppressLint("MissingPermission")
     override fun sendHeartbeat() {
         queueUpCommand("H")
     }
 
-    @SuppressLint("MissingPermission")
     override fun commitCalibration() {
         queueUpCommand("R")
     }
 
-    @SuppressLint("MissingPermission")
     override fun cancelCalibration() {
         queueUpCommand("A")
+    }
+
+    override fun postDebugToggle(d: Int) {
+        queueUpCommand("D${d}")
+    }
+
+    override fun postVaneType(vaneType: Int) {
+        queueUpCommand("V${vaneType}")
     }
     // endregion
 

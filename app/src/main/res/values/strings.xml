@@ -37,5 +37,14 @@
     <string name="CALIB_SCORE_FORMAT">%d</string>
     <string name="calibration_score_label">Score</string>
     <string name="calibration_score_threshold_label">Score T.</string>
+    <string name="transducer_error_message">Transducer Error</string>
+    <string name="off_calibration_error_message">Off calibration</string>
+    <string name="n2k_bus_error_message">N2K Error</string>
+    <string name="device_name_edit_label">Device Name</string>
+    <string name="settings_card_title">Settings</string>
+    <string name="switch_enable_usb_debug">USB debug</string>
+    <string name="switchVaneType">Vane type</string>
+    <string name="button_set_device_name">Save</string>
+
 
 </resources>

@@ -2,7 +2,6 @@ package com.aboni.n2kRouter
 
 import android.content.Context
 import android.widget.ImageView
-import android.widget.Switch
 import android.widget.TextView
 import kotlin.math.roundToInt
 
@@ -36,6 +35,10 @@ class N2KDataView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble) 
         get() = findViewById(R.id.btnDirectionSmoothingInc2)
     private val transducerTextView: TextView
         get() = findViewById(R.id.txtBigTransducer)
+    private val textError: TextView
+        get() = findViewById(R.id.textAlert)
+    private val textError2: TextView
+        get() = findViewById(R.id.textAlert2)
     private var cacheData: Data? = null
 
     init {
@@ -65,7 +68,7 @@ class N2KDataView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble) 
             cacheData = data
             if (cacheData!!.wind.valid) {
                 dialWind.setAngle(cacheData!!.wind.value.roundToInt(), cacheData!!.windSmooth.value.roundToInt(), cacheData!!.windOutput.value.roundToInt())
-                dialWind.setErr(cacheData!!.err.value.toFloat())
+                dialWind.setErr(cacheData!!.ellipse.value.toFloat())
                 dialWind.calibration = cacheData!!.calibrationProgress
                 dialWind.invalidate()
                 calibViewSin.value = cacheData!!.iSin.value.toInt()
@@ -95,9 +98,28 @@ class N2KDataView(context: Context, ble: BLEThing?) : N2KCardPage(context, ble) 
             } else bigAngleTxtView.text = noValueStr(context)
 
             if (cacheData!!.speed.valid) bigSpeedTxtView.text = formatValue(context, R.string.WIND_SPEED_FORMAT, cacheData!!.speed.value) else bigSpeedTxtView.text = noValueStr(context)
-            if (cacheData!!.err.valid) bigEllipseTxtView.text = formatValue(context, R.string.CALIB_ELLIPSE_FORMAT, cacheData!!.err.value) else bigEllipseTxtView.text = noValueStr(context)
+            if (cacheData!!.ellipse.valid) bigEllipseTxtView.text = formatValue(context, R.string.CALIB_ELLIPSE_FORMAT, cacheData!!.ellipse.value) else bigEllipseTxtView.text = noValueStr(context)
 
             transducerTextView.text = vaneTypeToStr(cacheData!!.vaneType)
+            
+            if (cacheData!!.errorAngle.valid && cacheData!!.errorAngle.value == 2L) {
+                textError.text = context.getString(R.string.off_calibration_error_message)
+                textError.visibility = VISIBLE
+            } else if (cacheData!!.errorAngle.valid && cacheData!!.errorAngle.value > 0L) {
+                textError.text = context.getString(R.string.transducer_error_message)
+                textError.visibility = VISIBLE
+            } else {
+                textError.text = noValueStr(context)
+                textError.visibility = INVISIBLE
+            }
+
+            if (cacheData!!.n2kBusError.valid && cacheData!!.n2kBusError.value > 0L) {
+                textError2.visibility = VISIBLE
+                textError2.text = context.getString(R.string.n2k_bus_error_message)
+            } else {
+                textError2.visibility = INVISIBLE
+                textError2.text = noValueStr(context)
+            }
         }
     }
 
