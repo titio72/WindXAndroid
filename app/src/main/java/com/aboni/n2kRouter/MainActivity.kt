@@ -1,156 +1,141 @@
 package com.aboni.n2kRouter
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.res.Configuration
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
-import java.util.Timer
-import java.util.TimerTask
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
+import com.aboni.marine.link.LinkState
+import com.aboni.marine.link.ble.requiredBlePermissions
+import com.aboni.marine.ui.MarineScaffold
+import com.aboni.marine.ui.devices.DeviceList
+import com.aboni.marine.ui.cards.CardAction
+import com.aboni.marine.ui.cards.CardPage
+import com.aboni.marine.ui.cards.CardPager
+import com.aboni.marine.ui.theme.Marine
+import com.aboni.marine.ui.theme.MarineTheme
+import com.aboni.marine.ui.theme.ThemeStore
+import com.aboni.marine.ui.theme.next
+import com.aboni.n2kRouter.ui.AdjustCard
+import com.aboni.n2kRouter.ui.CalibrationCard
+import com.aboni.n2kRouter.ui.SettingsCard
+import com.aboni.n2kRouter.ui.WindCard
+import com.aboni.n2kRouter.ui.rememberSender
+import kotlinx.coroutines.launch
 
-class MainActivity : BLEN2KListener, BLEApp() {
+/** Wind, Calibration, Adjust, Settings, Devices; the status bar's ⚙ jumps to Devices. */
+private const val PAGES = 5
+private const val DEVICES_PAGE = PAGES - 1
 
+class MainActivity : ComponentActivity() {
 
-    private val ble: BLEThing by lazy { BLEThingImpl(this) }
-    private val pageAdapter: N2KPagerAdapter by lazy { N2KPagerAdapter(this, ble) }
-    private val timer = Timer("BLE connection check", false)
+    private val vm: WindViewModel by viewModels()
+    private val permissions = requiredBlePermissions(Build.VERSION.SDK_INT)
+    private var granted by mutableStateOf(false)
 
-    //region Widgets References
-    private val pager: ViewPager2
-        get() = findViewById(R.id.pagerView)
-    private val statusTxtView: TextView
-        get() = findViewById(R.id.textStatus)
-    private val btDeviceTxtView: DeviceListItemView
-        get() = findViewById(R.id.textBTDevice)
-    private val imgConnection: ImageView
-        get() = findViewById(R.id.imgConnection)
-    //endregion
-
-    //region pages
-    private class N2KPagerAdapter(val context: Context, ble: BLEThing): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-        private val scanView: N2KScanView = N2KScanView(context, ble)
-        private val dataView: N2KDataView = N2KDataView(context, ble)
-        private val calibView: N2KCalibView = N2KCalibView(context, ble)
-
-        private val settingsView: N2KSettingsView = N2KSettingsView(context, ble)
-
-        private val views = arrayOf( dataView, calibView, settingsView, scanView )
-
-        class N2KViewPlaceHolder(context: Context): FrameLayout(context) {
-
-            private var theView: N2KCardPage?= null
-
-            fun loadContent(v: N2KCardPage) {
-                v.tag = "card_content"
-                addView(v)
-                theView = v
-            }
-        }
-
-        class N2KViewHolder(val view: N2KViewPlaceHolder): RecyclerView.ViewHolder(view)
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            val v = N2KViewPlaceHolder(parent.context)
-            v.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-            return N2KViewHolder(v)
-        }
-
-        override fun getItemCount(): Int {
-            return views.size
-        }
-
-        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            if (position>=itemCount) throw RuntimeException("Invalid pager position $position")
-            val v = views[position]
-            (holder as N2KViewHolder).view.loadContent(v)
-            v.onActivate()
-        }
-    }
-    //endregion
-
-    //region activity
-    override fun onResume() {
-        super.onResume()
-        grantBluetoothCentralPermissions(AskType.InsistUntilSuccess) {
-            success -> appendLog("BLE Permission: $success")
-            if (success) {
-                ble.startScan()
-            }
-        }
+    private val askPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { r ->
+        granted = r.values.all { it }
+        if (granted) vm.start()
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
-        ble.addListener(this)
-
-        pager.adapter = pageAdapter
-        updateBTView()
-
-        timer.schedule(object: TimerTask() {
-            override fun run() {
-                ble.refreshConnection()
-                ble.sendHeartbeat()
-            }
-        }, 0, 2500)
-
-        appendLog("MainActivity.onCreate")
-    }
-
-    override fun onDestroy() {
-        ble.disconnect()
-        super.onDestroy()
-    }
-    //endregion
-
-    //region UI Interaction
-    override fun onStatus(status: BLELifecycleState, scanning: Boolean) {
-        appendLog("status = $status scanning = $scanning")
-        runOnUiThread {
-            statusTxtView.text = status.toString()
-            updateBTView()
-            imgConnection.setImageResource(if (scanning) R.drawable.ic_scanning_on else R.drawable.ic_scanning_off)
-        }
-    }
-
-    private fun updateBTView() {
-        btDeviceTxtView.highlighted = ble.getStatus() == BLELifecycleState.Connected
-        btDeviceTxtView.deviceItem = ble.getConnectedDevice() ?: NO_DEVICE
-    }
-
-    override fun onData(data: Data) {
-        runOnUiThread {
-            if (data.heap.valid) findViewById<TextView>(R.id.txtHeap).text = formatValue(applicationContext, R.string.HEAP_FORMAT, data.heap.value) else findViewById<TextView>(R.id.txtHeap).text = noValueStr(applicationContext)
-        }
-    }
-
-    override fun onScan(device: DeviceItem) {
-        runOnUiThread {
-            if (btDeviceTxtView.deviceItem.idMatch(device)) {
-                btDeviceTxtView.deviceItem = device
+        val themes = ThemeStore(this)
+        val link = vm.link
+        setContent {
+            val mode by themes.mode.collectAsState()
+            val status by link.status.collectAsState()
+            val data by link.data.collectAsState()
+            val devices by link.devices.collectAsState()
+            val chosen by link.chosen.collectAsState()
+            val scanning by vm.scanning.collectAsState()
+            val increment by vm.increment.collectAsState()
+            val pager = rememberPagerState { PAGES }
+            val scope = rememberCoroutineScope()
+            // First run: nothing chosen yet, so show the sensors being found.
+            LaunchedEffect(granted, chosen) { if (granted && chosen == null) pager.scrollToPage(DEVICES_PAGE) }
+            MarineTheme(mode) {
+                MarineScaffold(
+                    status = status,
+                    onStatusSettings = { scope.launch { pager.animateScrollToPage(DEVICES_PAGE) } },
+                    onCycleTheme = { themes.set(mode.next()) },
+                    banner = if (granted) null else { { PermissionBanner { askPermissions.launch(permissions.toTypedArray()) } } },
+                ) { padding ->
+                    val send = rememberSender(vm::send)
+                    val connected = status.state == LinkState.Connected || status.state == LinkState.Stale
+                    CardPager(
+                        listOf(
+                            CardPage("wind", "Wind", CardAction.icon(android.R.drawable.ic_menu_view, "Wind")) {
+                                WindCard(data, send)
+                            },
+                            CardPage("calibration", "Calibration", CardAction.icon(android.R.drawable.ic_menu_manage, "Calibration")) {
+                                CalibrationCard(data, send)
+                            },
+                            CardPage("adjust", "Adjust", CardAction.icon(android.R.drawable.ic_menu_preferences, "Adjust")) {
+                                AdjustCard(data, increment, vm::setIncrement, send)
+                            },
+                            CardPage("settings", "Settings", CardAction.icon(android.R.drawable.ic_menu_edit, "Settings")) {
+                                SettingsCard(data, status.device?.name, connected, send)
+                            },
+                            CardPage("devices", "Devices", CardAction.icon(android.R.drawable.ic_menu_search, "Scan for devices", vm::scan)) {
+                                DeviceList(
+                                    devices = devices,
+                                    status = status,
+                                    chosenId = chosen,
+                                    onSelect = link::select,
+                                    scanning = scanning || status.state == LinkState.Scanning,
+                                    emptyText = "No wind sensors found yet: tap the search icon to scan",
+                                )
+                            },
+                        ),
+                        Modifier.fillMaxSize().padding(padding),
+                        state = pager,
+                    )
+                }
             }
         }
     }
 
-    override fun onRssi(connectedDevice: DeviceItem, rssi: Int) {
-        onScan(connectedDevice)
+    override fun onStart() {
+        super.onStart()
+        granted = permissions.all { ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED }
+        if (granted) vm.start() else askPermissions.launch(permissions.toTypedArray())
     }
-    //endregion
+
+    override fun onStop() {
+        vm.stop()
+        super.onStop()
+    }
+}
+
+@androidx.compose.runtime.Composable
+private fun PermissionBanner(onAllow: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "Bluetooth permission is needed to reach the wind sensor.",
+            style = Marine.type.body,
+            color = Marine.colors.error,
+            modifier = Modifier.weight(1f),
+        )
+        TextButton(onClick = onAllow) { Text("Allow") }
+    }
 }

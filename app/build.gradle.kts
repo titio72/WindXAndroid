@@ -1,11 +1,11 @@
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.composeCompiler)
 }
 
 android {
     namespace = "com.aboni.n2kRouter"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.aboni.N2KWind"
@@ -27,34 +27,27 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8    }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17    }
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.2"
+    testOptions {
+        // android.util.Log in decode paths returns defaults instead of throwing.
+        unitTests.isReturnDefaultValues = true
     }
 }
 
 dependencies {
 
+    implementation(libs.marine.ui)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.activity)
-    implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.runtime.android)
-    implementation(libs.androidx.ui.android)
-    implementation(libs.androidx.material3.android)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.datastore.core)
     implementation(libs.androidx.datastore.preferences.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation(kotlin("script-runtime"))
 }

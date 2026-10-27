@@ -1,8 +1,6 @@
 package com.aboni.n2kRouter
 
-import android.content.Context
 import android.util.Log
-import kotlin.math.abs
 
 fun byteToInt(v: ByteArray, offset: Int, size: Int, signed: Boolean = true): Long? {
     if ((size+offset)>v.size) return null
@@ -25,11 +23,4 @@ fun byteToInt(v: ByteArray, offset: Int, size: Int, signed: Boolean = true): Lon
 fun appendLog(message: String)
 {
     Log.i("ABN2K", message)
-}
-fun noValueStr(context: Context): String {
-    return context.getString(R.string.NO_VALUE_STRING)
-}
-
-fun formatValue(context: Context, formatId: Int, vararg args: Any?): String {
-    return context.getString(formatId).format(*args)
 }

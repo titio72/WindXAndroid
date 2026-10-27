@@ -4,7 +4,7 @@ package com.aboni.n2kRouter
 class Data {
 
     fun copyFrom(data: Data) {
-        for (i in fields.indices) fields[i].copyFrom(data.fields[i]);
+        for (i in 0..fields.size-1) fields[i].copyFrom(data.fields[i]);
     }
 
     val wind = DoubleValue(2, 0.1)
@@ -20,6 +20,7 @@ class Data {
     val iCosLow = IntValue(2, false)
     val iCosHigh = IntValue(2, false)
     val speed = DoubleValue(2, 0.1)
+    val frequency = DoubleValue(2, 0.01)
     val errorSpeed = IntValue(1, true)
     val angleOffset = IntValue(2, true)
     val speedAdjustment = IntValue(1, false)
@@ -39,10 +40,10 @@ class Data {
     private val fields: Array<BaseValue> = arrayOf(
         wind, windSmooth, windOutput, ellipse, heap, errorAngle,
         iSin, iSinLow, iSinHigh, iCos, iCosLow, iCosHigh,
-        speed, errorSpeed, angleOffset, speedAdjustment,
+        speed, frequency, errorSpeed, angleOffset, speedAdjustment,
         n2kSource, angleSmoothing, speedSmoothing,
-        calibrationThreshold, autoCalibration, calibrationProgress,
-        n2kBusError, vaneType, calibValid, calibInScore, debug)
+        calibrationThreshold, autoCalibration,
+        n2kBusError, vaneType, calibValid, calibInScore, debug, calibrationProgress)
 
 
     fun dump(data: ByteArray) {
