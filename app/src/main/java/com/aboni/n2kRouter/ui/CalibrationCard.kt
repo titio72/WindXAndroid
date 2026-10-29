@@ -47,6 +47,7 @@ fun ColumnScope.CalibrationCard(d: Data?, send: (WindCommand) -> Unit) {
         modifier = Modifier.fillMaxWidth().height(40.dp),
     )
     Spacer(Modifier.height(8.dp))
+    SensorBars(d)
     SwitchRow(
         "Auto calibration",
         d?.autoCalibration?.takeIf { it.valid }?.let { d.isAutocalibrating },

@@ -41,19 +41,30 @@ fun ColumnScope.AdjustCard(d: Data?, incrementIndex: Int, onIncrement: (Int) -> 
         )
         HorizontalDivider(color = Marine.colors.divider)
         Spacer(Modifier.height(4.dp))
-        SensorBars(d)
         fun range(bound: RangeBound, delta: Int): (() -> Unit)? =
             d?.let { data -> { send(WindCommand.SetCalibration(steppedRange(data, bound, delta))) } }
-        Stepper("Sin low", d?.iSinLow?.text() ?: NO_VALUE, range(RangeBound.SinLow, -step), range(RangeBound.SinLow, step))
-        Stepper("Sin high", d?.iSinHigh?.text() ?: NO_VALUE, range(RangeBound.SinHigh, -step), range(RangeBound.SinHigh, step))
-        Stepper("Cos low", d?.iCosLow?.text() ?: NO_VALUE, range(RangeBound.CosLow, -step), range(RangeBound.CosLow, step))
-        Stepper("Cos high", d?.iCosHigh?.text() ?: NO_VALUE, range(RangeBound.CosHigh, -step), range(RangeBound.CosHigh, step))
+        SinBar(d)
+        RangeStepper(
+            "Sin low", d?.iSinLow?.text() ?: NO_VALUE, range(RangeBound.SinLow, -step), range(RangeBound.SinLow, step),
+            "Sin high", d?.iSinHigh?.text() ?: NO_VALUE, range(RangeBound.SinHigh, -step), range(RangeBound.SinHigh, step),
+        )
+        Spacer(Modifier.height(8.dp))
         HorizontalDivider(color = Marine.colors.divider)
+        Spacer(Modifier.height(4.dp))
+        CosBar(d)
+        RangeStepper(
+            "Cos low", d?.iCosLow?.text() ?: NO_VALUE, range(RangeBound.CosLow, -step), range(RangeBound.CosLow, step),
+            "Cos high", d?.iCosHigh?.text() ?: NO_VALUE, range(RangeBound.CosHigh, -step), range(RangeBound.CosHigh, step),
+        )
+        Spacer(Modifier.height(8.dp))
+        HorizontalDivider(color = Marine.colors.divider)
+        Spacer(Modifier.height(8.dp))
         Stepper(
             "Offset (°)", d?.let { signedDegrees(it.angleOffset) } ?: NO_VALUE,
             onDown = d?.let { stepped(it.angleOffset, -small, -180..180) }?.let { { send(WindCommand.Offset(it)) } },
             onUp = d?.let { stepped(it.angleOffset, small, -180..180) }?.let { { send(WindCommand.Offset(it)) } },
         )
+        Spacer(Modifier.height(8.dp))
         Stepper(
             "Speed adjustment", d?.let { percentAsFactor(it.speedAdjustment) } ?: NO_VALUE,
             onDown = d?.let { stepped(it.speedAdjustment, -small, 0..250) }?.let { { send(WindCommand.SpeedAdjustment(it)) } },

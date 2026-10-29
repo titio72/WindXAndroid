@@ -5,12 +5,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -123,21 +127,33 @@ private fun DrawScope.drawNeedle(color: Color, angle: Double, r: Float, err: Dou
     }
 }
 
+/** Draws [content] clipped to a pill filling the canvas, then frames it like an OutlinedButton: 1dp in [frame]. */
+private fun DrawScope.inPill(frame: Color, content: DrawScope.() -> Unit) {
+    val stroke = 1.dp.toPx()
+    val radius = size.height / 2
+    clipPath(Path().apply { addRoundRect(RoundRect(Rect(Offset.Zero, size), CornerRadius(radius))) }, block = content)
+    drawRoundRect(
+        frame, Offset(stroke / 2, stroke / 2), Size(size.width - stroke, size.height - stroke),
+        CornerRadius(radius - stroke / 2), Stroke(stroke),
+    )
+}
+
 /** An ADC reading on 0..[max] with its calibrated [low]..[high] range shaded. */
 @Composable
 fun RangeBar(value: Int?, low: Int?, high: Int?, max: Int, modifier: Modifier = Modifier) {
-    val frame = Marine.colors.label
+    val frame = Marine.colors.divider
     val range = Marine.colors.primary.copy(alpha = 0.45f)
     val marker = WindColors.needle.current()
     Canvas(modifier) {
         val w = size.width
-        if (low != null && high != null) {
-            drawRect(range, Offset(w * low / max, 0f), Size(w * (high - low).coerceAtLeast(0) / max, size.height))
-        }
-        drawRect(frame, style = Stroke(1.5.dp.toPx()))
-        value?.let {
-            val x = w * it / max
-            drawLine(marker, Offset(x, 0f), Offset(x, size.height), 4.dp.toPx())
+        inPill(frame) {
+            if (low != null && high != null) {
+                drawRect(range, Offset(w * low / max, 0f), Size(w * (high - low).coerceAtLeast(0) / max, size.height))
+            }
+            value?.let {
+                val x = w * it / max
+                drawLine(marker, Offset(x, 0f), Offset(x, size.height), 4.dp.toPx())
+            }
         }
     }
 }
@@ -148,24 +164,26 @@ fun RangeBar(value: Int?, low: Int?, high: Int?, max: Int, modifier: Modifier = 
  */
 @Composable
 fun CalibrationStrip(calibration: Calibration?, angle: Double?, inScore: Boolean, modifier: Modifier = Modifier) {
-    val frame = Marine.colors.label
+    val frame = Marine.colors.divider
     val covered = if (inScore) WindColors.calibrated.current() else WindColors.calibrating.current()
     val marker = WindColors.needle.current()
     Canvas(modifier) {
-        val w = size.width - 4.dp.toPx()
-        val x0 = 2.dp.toPx()
+        // Keep 0° and 360° on the straight part, clear of the rounded ends.
+        val x0 = size.height / 2
+        val w = size.width - 2 * x0
         val inset = size.height * 0.2f
-        drawRect(frame, style = Stroke(1.5.dp.toPx()))
-        calibration?.let { cal ->
-            for (i in 0 until 360 step DIAL_STEP) {
-                if (!cal.isAngleOk(i.toDouble())) continue
-                val x = x0 + w * i / 360f
-                drawLine(covered, Offset(x, inset), Offset(x, size.height - inset), 3.dp.toPx())
+        inPill(frame) {
+            calibration?.let { cal ->
+                for (i in 0 until 360 step DIAL_STEP) {
+                    if (!cal.isAngleOk(i.toDouble())) continue
+                    val x = x0 + w * i / 360f
+                    drawLine(covered, Offset(x, inset), Offset(x, size.height - inset), 3.dp.toPx())
+                }
             }
-        }
-        angle?.let {
-            val x = x0 + w * (it.toFloat() / 360f)
-            drawLine(marker, Offset(x, 0f), Offset(x, size.height), 3.dp.toPx())
+            angle?.let {
+                val x = x0 + w * (it.toFloat() / 360f)
+                drawLine(marker, Offset(x, 0f), Offset(x, size.height), 3.dp.toPx())
+            }
         }
     }
 }

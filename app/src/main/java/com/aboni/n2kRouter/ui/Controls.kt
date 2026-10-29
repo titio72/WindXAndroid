@@ -76,6 +76,36 @@ fun Stepper(label: String, value: String, onDown: (() -> Unit)?, onUp: (() -> Un
     }
 }
 
+/**
+ * A low/high pair: the low's − + on the left and the high's − + on the right, with the bare values below them (the
+ * labels are only spoken). A null handler disables that button.
+ */
+@Composable
+fun RangeStepper(
+    lowLabel: String, lowValue: String, onLowDown: (() -> Unit)?, onLowUp: (() -> Unit)?,
+    highLabel: String, highValue: String, onHighDown: (() -> Unit)?, onHighUp: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                StepButton("−", "Decrease $lowLabel", onLowDown)
+                StepButton("+", "Increase $lowLabel", onLowUp)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                StepButton("−", "Decrease $highLabel", onHighDown)
+                StepButton("+", "Increase $highLabel", onHighUp)
+            }
+        }
+        Row(Modifier.fillMaxWidth()) {
+            Text(lowValue, style = Marine.type.value, color = Marine.colors.onSurface, modifier = Modifier.weight(1f)
+                .semantics { contentDescription = "$lowLabel $lowValue" })
+            Text(highValue, style = Marine.type.value, color = Marine.colors.onSurface, textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f).semantics { contentDescription = "$highLabel $highValue" })
+        }
+    }
+}
+
 @Composable
 private fun StepButton(glyph: String, description: String, onClick: (() -> Unit)?) {
     OutlinedButton(

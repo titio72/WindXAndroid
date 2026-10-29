@@ -48,12 +48,12 @@ fun ColumnScope.WindCard(d: Data?, send: (WindCommand) -> Unit) {
         LabeledValue("Ellipse", d?.ellipse?.text(2) ?: NO_VALUE, Modifier.weight(1f))
         LabeledValue("Vane", d?.let { vaneTypeName(it.vaneType) } ?: NO_VALUE, Modifier.weight(1f))
     }
-    SensorBars(d)
     Stepper(
         "Speed 𝛂", d?.let { percentAsFactor(it.speedSmoothing) } ?: NO_VALUE,
         onDown = d?.let { stepped(it.speedSmoothing, -SMOOTHING_STEP, 0..100) }?.let { { send(WindCommand.SpeedSmoothing(it)) } },
         onUp = d?.let { stepped(it.speedSmoothing, SMOOTHING_STEP, 0..100) }?.let { { send(WindCommand.SpeedSmoothing(it)) } },
     )
+    Spacer(Modifier.height(8.dp))
     Stepper(
         "Direction 𝛂", d?.let { percentAsFactor(it.angleSmoothing) } ?: NO_VALUE,
         onDown = d?.let { stepped(it.angleSmoothing, -SMOOTHING_STEP, 0..100) }?.let { { send(WindCommand.DirectionSmoothing(it)) } },
@@ -64,15 +64,23 @@ fun ColumnScope.WindCard(d: Data?, send: (WindCommand) -> Unit) {
 /** Sin and cos readings against their calibrated ranges. */
 @Composable
 fun SensorBars(d: Data?) {
+    SinBar(d)
+    CosBar(d)
+}
+
+@Composable
+fun SinBar(d: Data?) =
     BarRow("Sin", d?.iSin?.takeIf { it.valid }?.value?.toInt(), d?.iSinLow?.takeIf { it.valid }?.value?.toInt(),
         d?.iSinHigh?.takeIf { it.valid }?.value?.toInt())
+
+@Composable
+fun CosBar(d: Data?) =
     BarRow("Cos", d?.iCos?.takeIf { it.valid }?.value?.toInt(), d?.iCosLow?.takeIf { it.valid }?.value?.toInt(),
         d?.iCosHigh?.takeIf { it.valid }?.value?.toInt())
-}
 
 @Composable
 private fun BarRow(label: String, value: Int?, low: Int?, high: Int?) {
     Text(label, style = Marine.type.label, color = Marine.colors.label)
-    RangeBar(value, low, high, ADC_MAX, Modifier.fillMaxWidth().height(14.dp))
+    RangeBar(value, low, high, ADC_MAX, Modifier.fillMaxWidth().height(28.dp))
     Spacer(Modifier.height(4.dp))
 }
