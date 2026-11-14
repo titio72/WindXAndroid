@@ -32,6 +32,14 @@ class WindViewModel(app: Application) : AndroidViewModel(app) {
         WindProtocol,
     )
 
+    /** The sensor's wind-correction table: read from the sensor on demand, edited through here. */
+    val correction = CorrectionController(
+        viewModelScope,
+        link.data,
+        readTable = { link.pipe.read(CHANNEL_TABLE) },
+        send = link::send,
+    )
+
     private val _scanning = MutableStateFlow(false)
     /** True while a scan asked for by the user runs. */
     val scanning: StateFlow<Boolean> = _scanning.asStateFlow()

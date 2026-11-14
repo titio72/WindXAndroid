@@ -11,7 +11,8 @@ fun byteToInt(v: ByteArray, offset: Int, size: Int, signed: Boolean = true): Lon
     for (byte in bytes) {
         var ub: UByte = byte.toUByte()
         if (negative) ub = ub.inv()
-        result = result or ((ub.toInt() shl shift).toLong())
+        // Shift as a Long: an Int shift of a byte of 0x80 or more by 24 would go negative and sign-extend.
+        result = result or (ub.toLong() shl shift)
         shift += 8
     }
     return if (negative)

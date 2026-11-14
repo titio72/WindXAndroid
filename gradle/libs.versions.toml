@@ -7,6 +7,7 @@ espressoCore = "3.6.1"
 activity = "1.10.1"
 datastoreCore = "1.1.7"
 datastorePreferencesCore = "1.1.7"
+coroutines = "1.10.2"
 
 [libraries]
 marine-ui = { module = "com.github.titio72.marine-kit:ui" }
@@ -15,6 +16,7 @@ androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "l
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.16.0" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
