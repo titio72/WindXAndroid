@@ -54,10 +54,13 @@ fun LabeledValue(
     modifier: Modifier = Modifier,
     style: TextStyle = Marine.type.value,
     alignEnd: Boolean = false,
+    centered: Boolean = false,
 ) {
-    Column(modifier, horizontalAlignment = if (alignEnd) Alignment.End else Alignment.Start) {
-        Text(label, style = Marine.type.label, color = Marine.colors.label)
-        Text(value, style = style, color = Marine.colors.onSurface, textAlign = if (alignEnd) TextAlign.End else TextAlign.Start)
+    val align = if (centered) Alignment.CenterHorizontally else if (alignEnd) Alignment.End else Alignment.Start
+    val textAlign = if (centered) TextAlign.Center else if (alignEnd) TextAlign.End else TextAlign.Start
+    Column(modifier, horizontalAlignment = align) {
+        Text(label, style = Marine.type.label, color = Marine.colors.label, textAlign = textAlign)
+        Text(value, style = style, color = Marine.colors.onSurface, textAlign = textAlign)
     }
 }
 

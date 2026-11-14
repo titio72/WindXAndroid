@@ -1,13 +1,16 @@
 package com.aboni.n2kRouter.ui
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.aboni.marine.ui.theme.Marine
@@ -28,25 +31,26 @@ import com.aboni.n2kRouter.vaneTypeName
 @Composable
 fun ColumnScope.WindCard(d: Data?, send: (WindCommand) -> Unit) {
     val wind = d?.wind?.takeIf { it.valid }
-    Row(Modifier.fillMaxWidth()) {
-        LabeledValue("AWA (°)", d?.windOutput?.takeIf { it.valid }?.let { sideAngle(it.value) } ?: NO_VALUE,
-            Modifier.weight(1f), style = Marine.type.hero)
-        LabeledValue("AWS (kn)", d?.speed?.text(1) ?: NO_VALUE, style = Marine.type.hero, alignEnd = true)
+    Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+        WindDial(
+            raw = wind?.value,
+            smooth = d?.windSmooth?.takeIf { wind != null && it.valid }?.value,
+            output = d?.windOutput?.takeIf { wind != null && it.valid }?.value,
+            ellipse = d?.ellipse?.takeIf { it.valid }?.value,
+            calibration = d?.calibrationProgress?.takeIf { it.valid },
+            modifier = Modifier.fillMaxSize(),
+        )
+        // The dial leaves the centre free (the cross hair is broken there): the speed sits in it.
+        LabeledValue("AWS (kn)", d?.speed?.text(1) ?: NO_VALUE, style = Marine.type.hero, centered = true)
     }
-    WindDial(
-        raw = wind?.value,
-        smooth = d?.windSmooth?.takeIf { wind != null && it.valid }?.value,
-        output = d?.windOutput?.takeIf { wind != null && it.valid }?.value,
-        ellipse = d?.ellipse?.takeIf { it.valid }?.value,
-        calibration = d?.calibrationProgress?.takeIf { it.valid },
-        modifier = Modifier.weight(1f).fillMaxWidth(),
-    )
     d?.let { alerts(it) }.orEmpty().forEach {
         Text("${StatusTone.Error.symbol} $it", style = Marine.type.body, color = Marine.colors.error)
     }
-    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         LabeledValue("Ellipse", d?.ellipse?.text(2) ?: NO_VALUE, Modifier.weight(1f))
-        LabeledValue("Vane", d?.let { vaneTypeName(it.vaneType) } ?: NO_VALUE, Modifier.weight(1f))
+        LabeledValue("Vane", d?.let { vaneTypeName(it.vaneType) } ?: NO_VALUE, Modifier.weight(1f), centered = true)
+        LabeledValue("AWA (°)", d?.windOutput?.takeIf { it.valid }?.let { sideAngle(it.value) } ?: NO_VALUE,
+            Modifier.weight(1f), alignEnd = true)
     }
     Stepper(
         "Speed 𝛂", d?.let { percentAsFactor(it.speedSmoothing) } ?: NO_VALUE,

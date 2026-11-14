@@ -18,12 +18,14 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import com.aboni.marine.ui.theme.Marine
 import com.aboni.marine.ui.theme.current
 import com.aboni.n2kRouter.Calibration
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
@@ -64,20 +66,48 @@ fun WindDial(
             .semantics { contentDescription = "Wind dial" }
             .drawWithCache {
                 val c = Offset(size.width / 2f, size.height / 2f)
-                val r = min(size.width, size.height) / 2f * 0.75f
+                // As large as fits: each degree label sits just outside the ticks (which end at 1.1 r) and must stay
+                // inside the canvas, per axis.
+                val texts = (0 until 360 step 30).map { i ->
+                    i to measurer.measure((if (i > 180) 360 - i else i).toString(), labelStyle)
+                }
+                val edge = 1.dp.toPx()
+                val gap = 3.dp.toPx()
+                // Distance from the tick ends to the label centre: half the label's extent along its direction, plus a gap.
+                fun pad(i: Int, t: TextLayoutResult): Float {
+                    val rad = Math.toRadians(i.toDouble())
+                    return abs(sin(rad)).toFloat() * t.size.width / 2f + abs(cos(rad)).toFloat() * t.size.height / 2f + gap
+                }
+                var r = min(size.width, size.height) / 2f
+                texts.forEach { (i, t) ->
+                    val rad = Math.toRadians(i.toDouble())
+                    val s = abs(sin(rad)).toFloat()
+                    val co = abs(cos(rad)).toFloat()
+                    val p = pad(i, t)
+                    if (s > 0.01f) r = min(r, ((size.width / 2f - t.size.width / 2f - edge) / s - p) / 1.1f)
+                    if (co > 0.01f) r = min(r, ((size.height / 2f - t.size.height / 2f - edge) / co - p) / 1.1f)
+                }
                 val thin = 1.5.dp.toPx()
-                val ticks = Path().apply {
+                // Every 30° tick is drawn thicker, so they go in a path of their own.
+                fun tickPath(major: Boolean) = Path().apply {
                     for (i in 0 until 360 step DIAL_STEP) {
-                        val inner = if (i % 30 == 0) r * 0.9f else r
+                        if ((i % 30 == 0) != major) continue
+                        val inner = when {
+                            i % 30 == 0 -> r * 0.9f
+                            i % 10 == 0 -> r * 0.95f
+                            else -> r
+                        }
                         val a = polar(c, inner, i.toFloat())
                         val b = polar(c, r * 1.1f, i.toFloat())
                         moveTo(a.x, a.y)
                         lineTo(b.x, b.y)
                     }
                 }
-                val labels = (0 until 360 step 30).map { i ->
-                    val t = measurer.measure((if (i > 180) 360 - i else i).toString(), labelStyle)
-                    val p = polar(c, r * 1.25f, i.toFloat())
+                val ticks = tickPath(major = false)
+                val majorTicks = tickPath(major = true)
+                val majorStroke = 3.dp.toPx()
+                val labels = texts.map { (i, t) ->
+                    val p = polar(c, r * 1.1f + pad(i, t), i.toFloat())
                     t to Offset(p.x - t.size.width / 2f, p.y - t.size.height / 2f)
                 }
                 val sectorR = r * 0.95f
@@ -94,6 +124,7 @@ fun WindDial(
                     drawArc(starboard, 300f, 120f, false, sectorTopLeft, sectorSize, style = sectorStroke)
                     drawArc(port, 120f, 120f, false, sectorTopLeft, sectorSize, style = sectorStroke)
                     drawPath(ticks, dialColor, style = Stroke(thin))
+                    drawPath(majorTicks, dialColor, style = Stroke(majorStroke))
                     drawCircle(dialColor, r * 0.8f, c, style = Stroke(thin))
                     labels.forEach { (t, at) -> drawText(t, topLeft = at) }
 
