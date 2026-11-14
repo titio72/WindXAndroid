@@ -88,4 +88,7 @@ class CorrectionFormatTest {
         assertEquals("Row 10.0 kn · anchor 1 dA (°)", selectionLabel(Selection(100, 0, Field.DA)))
         assertEquals("Row 10.0 kn · anchor 3 dS (kn)", selectionLabel(Selection(100, 2, Field.DS)))
     }
+
+    @Test fun aRowIsSummarisedOnOneLine() =
+        assertEquals("10.0 kn: 40° -3.5/+0.0 · 95° -1.0/+0.5 · 150° +2.0/+0.0", rowSummary(row))
 }

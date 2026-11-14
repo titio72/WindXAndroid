@@ -53,3 +53,7 @@ fun selectionLabel(sel: Selection): String {
     }
     return "Row ${tenths(sel.rowTws)} kn · $what"
 }
+
+/** A row on one line, for the import preview: `10.0 kn: 40° -3.5/+0.0 · 95° -1.0/+0.5 · 150° +2.0/+0.0`. */
+fun rowSummary(row: CorrectionRow): String =
+    "${tenths(row.tws)} kn: " + row.anchors.joinToString(" · ") { "${it.angle}° ${tenths(it.dA, true)}/${tenths(it.dS, true)}" }

@@ -17,6 +17,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -37,6 +38,7 @@ import com.aboni.marine.ui.theme.next
 import com.aboni.n2kRouter.ui.AdjustCard
 import com.aboni.n2kRouter.ui.CalibrationCard
 import com.aboni.n2kRouter.ui.CorrectionCard
+import com.aboni.n2kRouter.ui.CorrectionImportDialog
 import com.aboni.n2kRouter.ui.SettingsCard
 import com.aboni.n2kRouter.ui.WindCard
 import com.aboni.n2kRouter.ui.rememberSender
@@ -72,6 +74,7 @@ class MainActivity : ComponentActivity() {
             val increment by vm.increment.collectAsState()
             val correction by vm.correction.ui.collectAsState()
             val correctionStep by vm.correctionStep.collectAsState()
+            var importing by remember { mutableStateOf(false) }
             val pager = rememberPagerState { PAGES }
             val scope = rememberCoroutineScope()
             // First run: nothing chosen yet, so show the sensors being found.
@@ -97,7 +100,7 @@ class MainActivity : ComponentActivity() {
                                 AdjustCard(data, increment, vm::setIncrement, send)
                             },
                             CardPage("correction", "Correction", CardAction.icon(android.R.drawable.ic_menu_agenda, "Correction")) {
-                                CorrectionCard(data, correction, vm.correction, connected, correctionStep, vm::setCorrectionStep, onImport = null)
+                                CorrectionCard(data, correction, vm.correction, connected, correctionStep, vm::setCorrectionStep, onImport = { importing = true })
                             },
                             CardPage("settings", "Settings", CardAction.icon(android.R.drawable.ic_menu_edit, "Settings")) {
                                 SettingsCard(data, status.device?.name, connected, send)
@@ -116,6 +119,9 @@ class MainActivity : ComponentActivity() {
                         Modifier.fillMaxSize().padding(padding),
                         state = pager,
                     )
+                }
+                if (importing) {
+                    CorrectionImportDialog(onSend = vm.correction::importRows, onDismiss = { importing = false })
                 }
             }
         }
