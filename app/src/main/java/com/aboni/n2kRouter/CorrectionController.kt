@@ -50,6 +50,7 @@ private enum class ReadState { Idle, Reading, Failed }
 
 private const val READ_ATTEMPTS = 3
 private const val READ_WAIT_MS = 1_000L
+private const val READ_RETRY_MS = 10_000L
 
 /**
  * Keeps the app's view of the sensor's correction table honest. The table is only ever learned by reading it from the
@@ -106,14 +107,14 @@ class CorrectionController(
 
     fun setEnabled(on: Boolean) {
         message.value = null
-        scope.launch { report(send(WindCommand.TableEnable(on))) }
+        scope.launch { flushLock.withLock { report(send(WindCommand.TableEnable(on))) } }
     }
 
     fun clear() {
         debounce?.cancel()
         working.value = null
         message.value = null
-        scope.launch { report(send(WindCommand.TableClear)) }
+        scope.launch { flushLock.withLock { report(send(WindCommand.TableClear)) } }
     }
 
     private fun report(r: CommandResult) {
@@ -152,7 +153,13 @@ class CorrectionController(
             drop(target)
             return@withLock
         }
-        for (cmd in commandsFor(base, target)) {
+        val commands = commandsFor(base, target)
+        if (commands == null) {
+            message.value = "This table can't be sent to the sensor in valid steps"
+            drop(target)
+            return@withLock
+        }
+        for (cmd in commands) {
             val r = send(cmd)
             if (!r.ok) {
                 message.value = r.text
@@ -160,7 +167,8 @@ class CorrectionController(
                 return@withLock
             }
         }
-        if (!awaitRows(target)) message.value = "The sensor did not accept the change"
+        // A Clear issued meanwhile has dropped the pending rows: not being matched is then expected.
+        if (!awaitRows(target) && working.value == target) message.value = "The sensor did not accept the change"
         drop(target)
     }
 
@@ -190,30 +198,46 @@ class CorrectionController(
             return
         }
         readState.value = ReadState.Reading
+        // The sensor keeps its table_id across a dropped link, so nothing else would ask again: retry until it works
+        // or the table_id changes (which restarts this).
+        while (true) {
+            if (readOnce(id)) {
+                readState.value = ReadState.Idle
+                return
+            }
+            readState.value = ReadState.Failed
+            delay(READ_RETRY_MS)
+            readState.value = ReadState.Reading
+        }
+    }
+
+    /** Up to [READ_ATTEMPTS] reads, each given [READ_WAIT_MS] to bring a table that matches [id]. */
+    private suspend fun readOnce(id: Long): Boolean {
         repeat(READ_ATTEMPTS) {
             try {
                 readTable()
             } catch (e: IOException) {
                 readError = e.message ?: "Can't read the table"
                 message.value = readError
-                readState.value = ReadState.Failed
-                return
+                return false
             }
-            val got = withTimeoutOrNull(READ_WAIT_MS) { data.filterNotNull().first { it.table?.id == id } }
-            if (got != null) {
+            if (withTimeoutOrNull(READ_WAIT_MS) { data.filterNotNull().first { it.table?.id == id } } != null) {
                 if (message.value == readError) message.value = null
-                readState.value = ReadState.Idle
-                return
+                return true
             }
         }
-        readState.value = ReadState.Failed
+        return false
     }
 
     private fun buildUi(d: Data?, pending: List<CorrectionRow>?, message: String?, read: ReadState): CorrectionUi {
         val id = d?.tableId?.takeIf { it.valid }?.value
         val confirmed = d?.table
         val inSync = id != null && confirmed != null && confirmed.id == id
-        val table = if (pending != null) CorrectionTable(confirmed?.enabled ?: false, pending) else confirmed
+        val table = when {
+            pending != null -> CorrectionTable(confirmed?.enabled ?: false, pending)
+            inSync -> confirmed
+            else -> null   // a table that is not the one the sensor reports is not the sensor's table
+        }
         val differing = pending?.filter { row -> confirmed?.rows?.none { it == row } ?: true }?.map { it.tws }?.toSet()
         val sync = when {
             id == null -> Sync.Unavailable
@@ -231,14 +255,31 @@ class CorrectionController(
 }
 
 /**
- * The commands that turn [base] into [target]: an upsert for each row that is new or different, a delete for each
- * row that is gone. Upserts go first, so a renamed row never leaves a gap, unless the table would then pass
- * [MAX_ROWS] rows.
+ * The commands that turn [base] into [target], in an order the firmware accepts. The firmware checks every command
+ * against the table as it stands, so an upsert that is fine in the final table can be refused while old rows are still
+ * there. Upserts go first (a renamed row then never leaves a gap); when none is accepted yet, an old row that is in the
+ * way is deleted (rows missing from [target] first), then upserts are tried again. Null if no order works.
  */
-private fun commandsFor(base: List<CorrectionRow>, target: List<CorrectionRow>): List<WindCommand> {
-    val before = base.associateBy { it.tws }
-    val upserts = target.filter { before[it.tws] != it }.map { WindCommand.TableUpsert(it) }
-    val deletes = base.filter { b -> target.none { it.tws == b.tws } }.map { WindCommand.TableDelete(it.tws) }
-    val added = target.count { it.tws !in before }
-    return if (base.size + added > MAX_ROWS) deletes + upserts else upserts + deletes
+private fun commandsFor(base: List<CorrectionRow>, target: List<CorrectionRow>): List<WindCommand>? {
+    fun with(rows: List<CorrectionRow>, row: CorrectionRow) = (rows.filter { it.tws != row.tws } + row).sortedBy { it.tws }
+    var state = base
+    val commands = mutableListOf<WindCommand>()
+    var upserts = target.filter { it !in base }
+    val gone = base.filter { b -> target.none { it.tws == b.tws } }.toMutableList()
+    while (upserts.isNotEmpty()) {
+        val next = upserts.firstOrNull { validateRows(with(state, it)) == null }
+        if (next != null) {
+            state = with(state, next)
+            commands += WindCommand.TableUpsert(next)
+            upserts = upserts - next
+            continue
+        }
+        val victim = gone.firstOrNull() ?: state.firstOrNull { it !in target } ?: return null
+        gone.remove(victim)
+        state = state - victim
+        commands += WindCommand.TableDelete(victim.tws)
+    }
+    // Deletes never break the firmware's rules.
+    gone.filter { it in state }.forEach { commands += WindCommand.TableDelete(it.tws) }
+    return commands
 }

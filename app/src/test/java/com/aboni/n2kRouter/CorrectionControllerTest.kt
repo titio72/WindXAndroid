@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -37,6 +38,7 @@ class CorrectionControllerTest {
         var failWith: CommandResult? = null
         var straddle = false
         var readFails = false
+        var sendDelayMs = 0L
 
         private fun frame(id: Long, known: CorrectionTable?) = Data().apply {
             tableId.parseValue(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(id.toInt()).array(), 0)
@@ -55,6 +57,7 @@ class CorrectionControllerTest {
 
         suspend fun send(cmd: WindCommand): CommandResult {
             sent += cmd
+            if (sendDelayMs > 0) delay(sendDelayMs)
             failWith?.let { return it }
             if (ignoreCommands) return CommandResult.Sent
             val next = when (cmd) {
@@ -78,7 +81,10 @@ class CorrectionControllerTest {
      */
     private val scopes = mutableListOf<CoroutineScope>()
 
-    @After fun cancelScopes() = scopes.forEach { it.cancel() }
+    @After fun cancelScopes() = stop()
+
+    /** A controller that ends a test out of sync keeps retrying its read, which `runTest` would wait for forever. */
+    private fun stop() = scopes.forEach { it.cancel() }
 
     private fun TestScope.controller(sensor: Sensor): CorrectionController {
         val scope = CoroutineScope(coroutineContext + Job()).also { scopes += it }
@@ -124,18 +130,20 @@ class CorrectionControllerTest {
         val sensor = Sensor(initial).apply { straddle = true }
         val c = controller(sensor)
         sensor.announce()
-        advanceUntilIdle()
+        advanceTimeBy(5_000); runCurrent()   // the read is retried later, so the clock is not run to idle
         assertEquals(3, sensor.reads)
         assertEquals(Sync.OutOfSync, c.ui.value.sync)
+        stop()
     }
 
     @Test fun aReadThatFailsLeavesItOutOfSyncWithTheReason() = runTest {
         val sensor = Sensor(initial).apply { readFails = true }
         val c = controller(sensor)
         sensor.announce()
-        advanceUntilIdle()
+        advanceTimeBy(5_000); runCurrent()
         assertEquals(Sync.OutOfSync, c.ui.value.sync)
         assertEquals("Not connected", c.ui.value.message)
+        stop()
     }
 
     @Test fun unavailableWithoutCorrectionFields() = runTest {
@@ -285,5 +293,72 @@ class CorrectionControllerTest {
         assertTrue(sensor.sent.isEmpty())
         advanceTimeBy(2); runCurrent()
         assertEquals(1, sensor.sent.size)
+    }
+
+    // --- found by the whole-branch review ---
+
+    private fun withDs(tws: Int, dS: Int) =
+        CorrectionRow(tws, listOf(Anchor(40, -35, dS), Anchor(95, -10, 0), Anchor(150, 20, 0)))
+
+    @Test fun anImportWhoseRowsConflictWithTheOldOnesStillEndsAsImported() = runTest {
+        // Every imported row is invalid next to a row the sensor has now, so the order of the commands matters.
+        val (sensor, c) = synced(CorrectionTable(true, listOf(withDs(60, 0), withDs(100, 20))))
+        val imported = listOf(withDs(80, -5), withDs(120, 0))
+        assertEquals(null, validateRows(imported))
+        c.importRows(imported)
+        advanceUntilIdle()
+        assertEquals(imported, sensor.table.rows)
+        assertEquals(Sync.InSync, c.ui.value.sync)
+        assertEquals(null, c.ui.value.message)
+    }
+
+    @Test fun clearWaitsForARunningFlush() = runTest {
+        val (sensor, c) = synced()
+        sensor.sendDelayMs = 100
+        c.importRows(listOf(flat(70), flat(80), flat(90)))
+        advanceTimeBy(150); runCurrent()   // the first upsert is done, the second is in flight
+        c.clear()
+        advanceUntilIdle()
+        assertEquals(WindCommand.TableClear, sensor.sent.last())
+        assertEquals(1, sensor.sent.count { it == WindCommand.TableClear })
+        assertTrue(sensor.table.rows.isEmpty())
+        assertEquals(null, c.ui.value.message)
+    }
+
+    @Test fun aFailedReadIsRetriedLater() = runTest {
+        val sensor = Sensor(initial).apply { readFails = true }
+        val c = controller(sensor)
+        sensor.announce()
+        advanceTimeBy(5_000); runCurrent()
+        assertEquals(Sync.OutOfSync, c.ui.value.sync)
+        sensor.readFails = false
+        advanceTimeBy(15_000); runCurrent()
+        assertEquals(Sync.InSync, c.ui.value.sync)
+        assertEquals(initial, c.ui.value.table)
+        assertEquals(null, c.ui.value.message)
+    }
+
+    @Test fun aTableThatDoesNotMatchTheSensorIsNotShown() = runTest {
+        val sensor = Sensor(initial).apply { straddle = true }
+        val c = controller(sensor)
+        sensor.announce()
+        advanceTimeBy(5_000); runCurrent()
+        assertEquals(Sync.OutOfSync, c.ui.value.sync)
+        assertNull(c.ui.value.table)
+        stop()
+    }
+
+    @Test fun anEditMadeWhileAFlushAwaitsItsConfirmationIsNotLost() = runTest {
+        val (sensor, c) = synced()
+        sensor.sendDelayMs = 100
+        c.adjust(sel, +1)
+        advanceTimeBy(600); runCurrent()   // the first upsert was sent and its confirmation is awaited
+        c.adjust(sel, +1)
+        advanceUntilIdle()
+        assertEquals(-33, sensor.table.rows[0].anchors[0].dA)
+        assertEquals(2, sensor.sent.size)
+        assertEquals(Sync.InSync, c.ui.value.sync)
+        assertEquals(null, c.ui.value.message)
+        assertTrue(c.ui.value.pendingTws.isEmpty())
     }
 }
