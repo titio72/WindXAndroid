@@ -123,4 +123,17 @@ class DataTest {
         assertEquals("Parsed calibValid value is incorrect", true, data.calibValid.asBoolean())
         assertFalse("calibrationProgress should be invalid when nSamples is 0", data.calibrationProgress.valid)
     }
+
+    @Test
+    fun copyFromCopiesTheCorrectionFields() {
+        val source = Data()
+        source.tableId.parseValue(byteArrayOf(0xDE.toByte(), 0xA1.toByte(), 0x30, 0x53), 0)
+        source.corrected.parseValue(byteArrayOf(1), 0)
+        source.table = CorrectionTable(false, emptyList())
+        val target = Data()
+        target.copyFrom(source)
+        assertEquals(0x5330A1DEL, target.tableId.value)
+        assertEquals(true, target.corrected.asBoolean())
+        assertEquals(source.table, target.table)
+    }
 }

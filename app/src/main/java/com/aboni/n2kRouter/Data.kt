@@ -5,6 +5,7 @@ class Data {
 
     fun copyFrom(data: Data) {
         for (i in 0..fields.size-1) fields[i].copyFrom(data.fields[i]);
+        table = data.table
     }
 
     val wind = DoubleValue(2, 0.1)
@@ -36,6 +37,16 @@ class Data {
     val calibInScore = BooleanValue()
     val debug = BooleanValue()
 
+    // The correction status, after the variable-length calibration part. Corrected wind is in 0.1 deg / 0.1 kn.
+    val tableId = IntValue(4, false)
+    val correctionEnabled = BooleanValue()
+    val corrected = BooleanValue()
+    val correctedAwa = IntValue(2, false)
+    val correctedAws = IntValue(2, false)
+
+    /** The sensor's correction table, read from its own characteristic; null until read. */
+    var table: CorrectionTable? = null
+
 
     private val fields: Array<BaseValue> = arrayOf(
         wind, windSmooth, windOutput, ellipse, heap, errorAngle,
@@ -43,7 +54,8 @@ class Data {
         speed, frequency, errorSpeed, angleOffset, speedAdjustment,
         n2kSource, angleSmoothing, speedSmoothing,
         calibrationThreshold, autoCalibration,
-        n2kBusError, vaneType, calibValid, calibInScore, debug, calibrationProgress)
+        n2kBusError, vaneType, calibValid, calibInScore, debug, calibrationProgress,
+        tableId, correctionEnabled, corrected, correctedAwa, correctedAws)
 
 
     fun dump(data: ByteArray) {
