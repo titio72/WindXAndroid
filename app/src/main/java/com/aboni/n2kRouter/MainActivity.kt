@@ -36,13 +36,14 @@ import com.aboni.marine.ui.theme.ThemeStore
 import com.aboni.marine.ui.theme.next
 import com.aboni.n2kRouter.ui.AdjustCard
 import com.aboni.n2kRouter.ui.CalibrationCard
+import com.aboni.n2kRouter.ui.CorrectionCard
 import com.aboni.n2kRouter.ui.SettingsCard
 import com.aboni.n2kRouter.ui.WindCard
 import com.aboni.n2kRouter.ui.rememberSender
 import kotlinx.coroutines.launch
 
-/** Wind, Calibration, Adjust, Settings, Devices; the status bar's ⚙ jumps to Devices. */
-private const val PAGES = 5
+/** Wind, Calibration, Adjust, Correction, Settings, Devices; the status bar's ⚙ jumps to Devices. */
+private const val PAGES = 6
 private const val DEVICES_PAGE = PAGES - 1
 
 class MainActivity : ComponentActivity() {
@@ -69,6 +70,8 @@ class MainActivity : ComponentActivity() {
             val chosen by link.chosen.collectAsState()
             val scanning by vm.scanning.collectAsState()
             val increment by vm.increment.collectAsState()
+            val correction by vm.correction.ui.collectAsState()
+            val correctionStep by vm.correctionStep.collectAsState()
             val pager = rememberPagerState { PAGES }
             val scope = rememberCoroutineScope()
             // First run: nothing chosen yet, so show the sensors being found.
@@ -92,6 +95,9 @@ class MainActivity : ComponentActivity() {
                             },
                             CardPage("adjust", "Adjust", CardAction.icon(android.R.drawable.ic_menu_preferences, "Adjust")) {
                                 AdjustCard(data, increment, vm::setIncrement, send)
+                            },
+                            CardPage("correction", "Correction", CardAction.icon(android.R.drawable.ic_menu_agenda, "Correction")) {
+                                CorrectionCard(data, correction, vm.correction, connected, correctionStep, vm::setCorrectionStep, onImport = null)
                             },
                             CardPage("settings", "Settings", CardAction.icon(android.R.drawable.ic_menu_edit, "Settings")) {
                                 SettingsCard(data, status.device?.name, connected, send)

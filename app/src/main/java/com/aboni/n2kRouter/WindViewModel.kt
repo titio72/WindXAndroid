@@ -48,12 +48,17 @@ class WindViewModel(app: Application) : AndroidViewModel(app) {
     /** Index into [INCREMENTS] of the step used by the calibration buttons. */
     val increment: StateFlow<Int> = _increment.asStateFlow()
 
+    private val _correctionStep = MutableStateFlow(0)
+    /** Index of the step the correction stepper uses (each field has its own list of steps). */
+    val correctionStep: StateFlow<Int> = _correctionStep.asStateFlow()
+
     private var heartbeat: Job? = null
     private var scanTimer: Job? = null
 
     init {
         viewModelScope.launch {
             _increment.value = prefs.calibPrecisionProgress(DEFAULT_INCREMENT_INDEX).first().coerceIn(INCREMENTS.indices)
+            _correctionStep.value = prefs.correctionStep(0).first().coerceAtLeast(0)
             // Before marine-kit the chosen device was kept in DataStore: carry it over once.
             val old = prefs.connectedDevice.first()
             if (old.isNotEmpty() && deviceStore.load() == null) {
@@ -95,6 +100,11 @@ class WindViewModel(app: Application) : AndroidViewModel(app) {
     fun setIncrement(index: Int) {
         _increment.value = index
         viewModelScope.launch { prefs.storeCalibPrecisionProgress(index) }
+    }
+
+    fun setCorrectionStep(index: Int) {
+        _correctionStep.value = index
+        viewModelScope.launch { prefs.storeCorrectionStep(index) }
     }
 
     suspend fun send(cmd: WindCommand): CommandResult = link.send(cmd)

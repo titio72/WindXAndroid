@@ -6,7 +6,6 @@ import com.aboni.marine.link.Protocol
 import com.aboni.marine.link.Replies
 import com.aboni.marine.link.ble.BleProfile
 import com.aboni.marine.link.ble.PairingPolicy
-import java.util.Locale
 import java.util.UUID
 
 private val SERVICE_UUID = UUID.fromString("32890585-c6ee-498b-9e7a-044baefb6542")
@@ -52,15 +51,12 @@ sealed class WindCommand(val text: String) {
     data class TableEnable(val on: Boolean) : WindCommand("C${if (on) 1 else 0}")
     /** Replaces the row with the same TWS, or inserts it in TWS order. */
     data class TableUpsert(val row: CorrectionRow) : WindCommand("U" + rowText(row))
-    data class TableDelete(val tws: Int) : WindCommand("Z" + tenthsText(tws))
+    data class TableDelete(val tws: Int) : WindCommand("Z" + tenths(tws))
     data object TableClear : WindCommand("Y")
 }
 
-/** A value in tenths as the firmware reads it: one decimal, always a dot. */
-private fun tenthsText(v: Int): String = String.format(Locale.ROOT, "%.1f", v / 10.0)
-
 private fun rowText(row: CorrectionRow): String =
-    (listOf(tenthsText(row.tws)) + row.anchors.flatMap { listOf(it.angle.toString(), tenthsText(it.dA), tenthsText(it.dS)) })
+    (listOf(tenths(row.tws)) + row.anchors.flatMap { listOf(it.angle.toString(), tenths(it.dA), tenths(it.dS)) })
         .joinToString(",")
 
 /** Decodes the sensor's data packet; the sensor does not reply to commands. */

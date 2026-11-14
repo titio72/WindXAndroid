@@ -3,6 +3,9 @@ package com.aboni.n2kRouter
 import kotlin.math.abs
 
 private const val ANCHORS = 3
+
+/** The first row of an empty table: 10 kn, no corrections, anchors at typical upwind, reaching and downwind angles. */
+val DEFAULT_ROW = CorrectionRow(100, listOf(Anchor(45, 0, 0), Anchor(95, 0, 0), Anchor(150, 0, 0)))
 private const val NEW_ROW_TWS_STEP = 5   // 0.5 kn
 
 /** The firmware's slope rule: a change of [dv] over [dx] (both in 0.1 units) is at most 0.5 per unit. */
